@@ -18,6 +18,7 @@ Public Class INICIO
             cargaDatos()
             Cambiar_Nombre_Propiedades()
             ParametrizacionGeneral()
+            CargaFirma()
         End If
         cargamenu()
     End Sub
@@ -77,10 +78,57 @@ Public Class INICIO
 
         If Not objGlobal.refDi.OGEN.existeVariable("Tarifa_Compra") Then
             objGlobal.refDi.OGEN.fijarValorVariable("Tarifa_Compra", "Lista de precios 01")
-            objGlobal.SBOApp.StatusBar.SetText("CReado Variable ""Tarifa_Compra"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Tarifa_Compra"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+
+        If Not objGlobal.refDi.OGEN.existeVariable("RPT_PED_COMPRAS") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("RPT_PED_COMPRAS", "RPT_PED_COMPRAS.rpt")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Report de Pedido de compras"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_MAIL") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_MAIL", "compras.mprimas@lingotes.com")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Mail para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_PRIORIDAD") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_PRIORIDAD", "2")
+            '0 --> Prioridad Normal
+            '1 --> Prioridad Baja
+            '2 --> Prioridad alta
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Prioridad de Envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_NOTIFICACION") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_NOTIFICACION", "2")
+            '0 --> Sin notificación
+            '1 --> Si la entrega es correcta
+            '2 --> Si la entrega falla
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Prioridad de Envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_HOST") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_HOST", "smtp.office365.com")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""HOST para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_PORT") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_PORT", "587")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""PORT para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_MAIL_US") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_MAIL_US", "compras.mprimas@lingotes.com")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Usuario Mail para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+        If Not objGlobal.refDi.OGEN.existeVariable("ENV_MAIL_PASS") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_MAIL_PASS", "123456")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Password Mail para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
     End Sub
-
+    Private Sub CargaFirma()
+        Dim path As String = objGlobal.refDi.OGEN.pathDLL & "\08.Historico\PEDCOMPRAS\"
+        If System.IO.Directory.Exists(path) = False Then
+            System.IO.Directory.CreateDirectory(path)
+        End If
+        If objGlobal.refDi.comunes.esAdministrador Then
+            EXO_GLOBALES.CopiarRecurso(Reflection.Assembly.GetExecutingAssembly(), "mail.htm", path & "\mail.htm")
+        End If
+    End Sub
     Private Sub cargamenu()
         Dim Path As String = ""
         Dim menuXML As String = objGlobal.funciones.leerEmbebido(Me.GetType(), "XML_MENU.xml")
@@ -127,6 +175,9 @@ Public Class INICIO
                 Case "EXO_CPPIND"
                     Clase = New EXO_CPPIND(objGlobal)
                     Return CType(Clase, EXO_CPPIND).SBOApp_ItemEvent(infoEvento)
+                Case "142"
+                    Clase = New EXO_OPOR(objGlobal)
+                    Return CType(Clase, EXO_OPOR).SBOApp_ItemEvent(infoEvento)
             End Select
 
             Return MyBase.SBOApp_ItemEvent(infoEvento)
