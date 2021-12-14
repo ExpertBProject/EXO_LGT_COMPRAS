@@ -16,6 +16,8 @@ Public Class INICIO
 
         If actualizar Then
             cargaDatos()
+            Cambiar_Nombre_Propiedades()
+            ParametrizacionGeneral()
         End If
         cargamenu()
     End Sub
@@ -51,6 +53,34 @@ Public Class INICIO
             res = objGlobal.SBOApp.GetLastBatchResults
         End If
     End Sub
+    Private Sub Cambiar_Nombre_Propiedades()
+        Dim sSQL As String = ""
+
+        If objGlobal.refDi.comunes.esAdministrador Then
+            sSQL = "UPDATE ""OITG"" SET ""ItmsGrpNam""='Precio Provisional' WHERE ""ItmsTypCod""=6"
+            If objGlobal.refDi.SQL.executeNonQuery(sSQL) = False Then
+                objGlobal.SBOApp.StatusBar.SetText("No se ha podido actualizar la propiedad 6 del artículo como ""Precio Provisional"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+            Else
+                objGlobal.SBOApp.StatusBar.SetText("Se ha actualizado la propiedad 6 del artículo como ""Precio Provisional"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            End If
+
+            sSQL = "UPDATE ""OCQG"" SET ""GroupName""='Cerrar Albarán de Proveedor' WHERE ""GroupCode""=6"
+            If objGlobal.refDi.SQL.executeNonQuery(sSQL) = False Then
+                objGlobal.SBOApp.StatusBar.SetText("No se ha podido actualizar la propiedad 6 del Interlocutor como ""Cerrar Albarán de Proveedor"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+            Else
+                objGlobal.SBOApp.StatusBar.SetText("Se ha actualizado la propiedad 6 del Interlocutor como ""Cerrar Albarán de Proveedor"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            End If
+
+        End If
+    End Sub
+    Private Sub ParametrizacionGeneral()
+
+        If Not objGlobal.refDi.OGEN.existeVariable("Tarifa_Compra") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("Tarifa_Compra", "Lista de precios 01")
+            objGlobal.SBOApp.StatusBar.SetText("CReado Variable ""Tarifa_Compra"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+    End Sub
+
     Private Sub cargamenu()
         Dim Path As String = ""
         Dim menuXML As String = objGlobal.funciones.leerEmbebido(Me.GetType(), "XML_MENU.xml")
@@ -94,6 +124,9 @@ Public Class INICIO
                 Case "UDO_FT_EXO_PPINDICE"
                     Clase = New EXO_PPINDICE(objGlobal)
                     Return CType(Clase, EXO_PPINDICE).SBOApp_ItemEvent(infoEvento)
+                Case "EXO_CPPIND"
+                    Clase = New EXO_CPPIND(objGlobal)
+                    Return CType(Clase, EXO_CPPIND).SBOApp_ItemEvent(infoEvento)
             End Select
 
             Return MyBase.SBOApp_ItemEvent(infoEvento)

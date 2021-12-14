@@ -113,6 +113,7 @@
   <ItemGroup>
     <Compile Include="EXO_993.vb" />
     <Compile Include="EXO_CPPIND.vb" />
+    <Compile Include="EXO_GLOBALES.vb" />
     <Compile Include="EXO_HOMO.vb" />
     <Compile Include="EXO_PPINDICE.vb" />
     <Compile Include="EXO_SUPLEMENTO.vb" />
