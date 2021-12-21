@@ -3,8 +3,11 @@
     <action type="add">
       <Menu Checked="0" Enabled="1" FatherUID="43535" Image="" String="Homologación Proveedores" Type="1" UniqueID="EXO-MnHoIC"></Menu>
       <Menu Checked="0" Enabled="1" FatherUID="3072" Image="" String="Precios Fin de Mes" Type="2" UniqueID="EXO-MnPFMES"></Menu>
-      <Menu Checked="0" Enabled="1" FatherUID="EXO-MnPFMES" Image="" String="Precios Periodo - Índice" Type="1" UniqueID="EXO-MnPPerIn"></Menu>
-      <Menu Checked="0" Enabled="1" FatherUID="EXO-MnPFMES" Image="" String="Recalcular Precios" Type="1" UniqueID="EXO-MnRPRE"></Menu>
+        <Menu Checked="0" Enabled="1" FatherUID="EXO-MnPFMES" Image="" String="Precios Periodo - Índice" Type="1" UniqueID="EXO-MnPPerIn"></Menu>
+        <Menu Checked="0" Enabled="1" FatherUID="EXO-MnPFMES" Image="" String="Recalcular Precios" Type="1" UniqueID="EXO-MnRPRE"></Menu>
+      <Menu Checked="0" Enabled="1" FatherUID="2304" Image="" String="" Type="3" UniqueID="EXO-MnCSEP1"></Menu>
+      <Menu Checked="0" Enabled="1" FatherUID="2304" Image="" String="Sólo Ticket" Type="1" UniqueID="EXO-MnSTKT"></Menu>
+      <Menu Checked="0" Enabled="1" FatherUID="2304" Image="" String="Control de Frecuencia" Type="1" UniqueID="EXO-MnCRTF"></Menu>
     </action>
   </Menus>
 </Application>

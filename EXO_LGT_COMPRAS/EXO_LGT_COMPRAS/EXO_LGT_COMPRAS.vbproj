@@ -115,6 +115,7 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EXO_143.vb" />
     <Compile Include="EXO_993.vb" />
     <Compile Include="EXO_CPPIND.vb" />
     <Compile Include="EXO_GLOBALES.vb" />
@@ -122,6 +123,7 @@
     <Compile Include="EXO_OPOR.vb" />
     <Compile Include="EXO_PPINDICE.vb" />
     <Compile Include="EXO_SUPLEMENTO.vb" />
+    <Compile Include="EXO_TICKET.vb" />
     <Compile Include="INICIO.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
@@ -186,7 +188,9 @@
     <EmbeddedResource Include="XML_FILTRO\XML_FILTROS.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="XML_MENU\XML_MENU.xml" />
+    <EmbeddedResource Include="XML_MENU\XML_MENU.xml">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FORMS\EXO_HOMO.srf" />
@@ -211,7 +215,12 @@
   <ItemGroup>
     <EmbeddedResource Include="FIRMA\mail.htm" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="XML_BD\UDO_EXO_TICKET.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="XML_BD\UDFs_OPDN.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(TargetPath) "\\xper-rdpdes02\compartidaB1\Lingotes\Ficheros\10.Dll_64\EXT\$(TargetFileName)"

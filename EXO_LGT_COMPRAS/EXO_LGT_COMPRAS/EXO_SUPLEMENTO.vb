@@ -1,5 +1,4 @@
-﻿Imports SAPbobsCOM
-Imports SAPbouiCOM
+﻿Imports SAPbouiCOM
 Public Class EXO_SUPLEMENTO
     Private objGlobal As EXO_UIAPI.EXO_UIAPI
 

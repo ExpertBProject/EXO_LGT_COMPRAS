@@ -1,5 +1,6 @@
-﻿Imports SAPbouiCOM
-Imports System.IO
+﻿Imports System.IO
+Imports SAPbouiCOM
+
 Public Class EXO_GLOBALES
     Public Enum FuenteInformacion
         Visual = 1
@@ -20,6 +21,31 @@ Public Class EXO_GLOBALES
         End If
 
 
+    End Sub
+    Public Shared Sub Copia_Seguridad(ByVal sArchivoOrigen As String, ByVal sArchivo As String, ByRef oObjGlobal As EXO_UIAPI.EXO_UIAPI)
+        'Comprobamos el directorio de copia que exista
+        Dim sPath As String = ""
+        sPath = IO.Path.GetDirectoryName(sArchivo)
+        If IO.Directory.Exists(sPath) = False Then
+            IO.Directory.CreateDirectory(sPath)
+        End If
+        If IO.File.Exists(sArchivo) = True Then
+            IO.File.Delete(sArchivo)
+        End If
+        'Subimos el archivo
+        oObjGlobal.SBOApp.StatusBar.SetText("(EXO) - Comienza la Copia de seguridad del fichero - " & sArchivoOrigen & " -.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+        If oObjGlobal.SBOApp.ClientType = BoClientType.ct_Browser Then
+            Dim fs As FileStream = New FileStream(sArchivoOrigen, FileMode.Open, FileAccess.Read)
+            Dim b(CInt(fs.Length() - 1)) As Byte
+            fs.Read(b, 0, b.Length)
+            fs.Close()
+            Dim fs2 As New System.IO.FileStream(sArchivo, IO.FileMode.Create, IO.FileAccess.Write)
+            fs2.Write(b, 0, b.Length)
+            fs2.Close()
+        Else
+            My.Computer.FileSystem.CopyFile(sArchivoOrigen, sArchivo)
+        End If
+        oObjGlobal.SBOApp.StatusBar.SetText("(EXO) - Copia de Seguridad realizada Correctamente", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
     End Sub
 
 #Region "Funciones formateos datos"

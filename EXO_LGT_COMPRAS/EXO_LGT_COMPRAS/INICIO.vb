@@ -38,8 +38,13 @@ Public Class INICIO
             objGlobal.refDi.comunes.LoadBDFromXML(sXML)
             res = objGlobal.SBOApp.GetLastBatchResults
 
-            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDFs_PDN1.xml")
+            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDFs_OPDN.xml")
             objGlobal.SBOApp.StatusBar.SetText("Validando: UDFs_OPDN", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            objGlobal.refDi.comunes.LoadBDFromXML(sXML)
+            res = objGlobal.SBOApp.GetLastBatchResults
+
+            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDFs_PDN1.xml")
+            objGlobal.SBOApp.StatusBar.SetText("Validando: UDFs_PDN1", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             objGlobal.refDi.comunes.LoadBDFromXML(sXML)
             res = objGlobal.SBOApp.GetLastBatchResults
 
@@ -50,6 +55,11 @@ Public Class INICIO
 
             sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_PPINDICE.xml")
             objGlobal.SBOApp.StatusBar.SetText("Validando: UDO_EXO_PPINDICE", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            objGlobal.refDi.comunes.LoadBDFromXML(sXML)
+            res = objGlobal.SBOApp.GetLastBatchResults
+
+            sXML = objGlobal.funciones.leerEmbebido(Me.GetType(), "UDO_EXO_TICKET.xml")
+            objGlobal.SBOApp.StatusBar.SetText("Validando: UDO_EXO_TICKET", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             objGlobal.refDi.comunes.LoadBDFromXML(sXML)
             res = objGlobal.SBOApp.GetLastBatchResults
         End If
@@ -82,7 +92,7 @@ Public Class INICIO
         End If
 
         If Not objGlobal.refDi.OGEN.existeVariable("RPT_PED_COMPRAS") Then
-            objGlobal.refDi.OGEN.fijarValorVariable("RPT_PED_COMPRAS", "RPT_PED_COMPRAS.rpt")
+            objGlobal.refDi.OGEN.fijarValorVariable("RPT_PED_COMPRAS", "PEDIDOCOMPRAS.rpt")
             objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Report de Pedido de compras"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
         If Not objGlobal.refDi.OGEN.existeVariable("ENV_MAIL") Then
@@ -104,7 +114,7 @@ Public Class INICIO
             objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Prioridad de Envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
         If Not objGlobal.refDi.OGEN.existeVariable("ENV_HOST") Then
-            objGlobal.refDi.OGEN.fijarValorVariable("ENV_HOST", "smtp.office365.com")
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_HOST", "smtp.outlook.com")
             objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""HOST para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
         If Not objGlobal.refDi.OGEN.existeVariable("ENV_PORT") Then
@@ -116,12 +126,22 @@ Public Class INICIO
             objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Usuario Mail para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
         If Not objGlobal.refDi.OGEN.existeVariable("ENV_MAIL_PASS") Then
-            objGlobal.refDi.OGEN.fijarValorVariable("ENV_MAIL_PASS", "123456")
+            objGlobal.refDi.OGEN.fijarValorVariable("ENV_MAIL_PASS", "Woy58956")
             objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""Password Mail para envío"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+
+        If Not objGlobal.refDi.OGEN.existeVariable("RPT_TICKET") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("RPT_TICKET", "PDN10001")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""RPT_TICKET"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
+
+        If Not objGlobal.refDi.OGEN.existeVariable("DIR_CTRL_REF") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("DIR_CTRL_REF", "\\xper-rdpdes02\compartidaB1\Lingotes\Ficheros\08.Historico\CTRL_REF\")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""DIR_CTRL_REF"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
     End Sub
     Private Sub CargaFirma()
-        Dim path As String = objGlobal.refDi.OGEN.pathDLL & "\08.Historico\PEDCOMPRAS\"
+        Dim path As String = objGlobal.refDi.OGEN.pathDLL & "\08.Historico\"
         If System.IO.Directory.Exists(path) = False Then
             System.IO.Directory.CreateDirectory(path)
         End If
@@ -178,6 +198,9 @@ Public Class INICIO
                 Case "142"
                     Clase = New EXO_OPOR(objGlobal)
                     Return CType(Clase, EXO_OPOR).SBOApp_ItemEvent(infoEvento)
+                Case "UDO_FT_EXO_TICKET"
+                    Clase = New EXO_TICKET(objGlobal)
+                    Return CType(Clase, EXO_TICKET).SBOApp_ItemEvent(infoEvento)
             End Select
 
             Return MyBase.SBOApp_ItemEvent(infoEvento)
@@ -196,6 +219,9 @@ Public Class INICIO
                 Case "UDO_FT_EXO_SUPLEMENTO"
                     Clase = New EXO_SUPLEMENTO(objGlobal)
                     Return CType(Clase, EXO_SUPLEMENTO).SBOApp_FormDataEvent(infoEvento)
+                Case "143"
+                    Clase = New EXO_143(objGlobal)
+                    Return CType(Clase, EXO_143).SBOApp_FormDataEvent(infoEvento)
             End Select
 
             Return MyBase.SBOApp_FormDataEvent(infoEvento)
@@ -227,6 +253,15 @@ Public Class INICIO
                     Case "EXO-MnRPRE"
                         Clase = New EXO_CPPIND(objGlobal)
                         Return CType(Clase, EXO_CPPIND).SBOApp_MenuEvent(infoEvento)
+                    Case "EXO-MnSTKT"
+                        Clase = New EXO_TICKET(objGlobal)
+                        Return CType(Clase, EXO_TICKET).SBOApp_MenuEvent(infoEvento)
+                    Case "EXO_MNPESOE"
+                        Clase = New EXO_143(objGlobal)
+                        Return CType(Clase, EXO_143).SBOApp_MenuEvent(infoEvento)
+                    Case "EXO_MNPESOS"
+                        Clase = New EXO_143(objGlobal)
+                        Return CType(Clase, EXO_143).SBOApp_MenuEvent(infoEvento)
                 End Select
             End If
 
@@ -236,6 +271,32 @@ Public Class INICIO
             objGlobal.Mostrar_Error(ex, EXO_TipoMensaje.Excepcion)
             Return False
         Finally
+            Clase = Nothing
+        End Try
+    End Function
+    Public Overrides Function SBOApp_RightClickEvent(infoEvento As ContextMenuInfo) As Boolean
+        Dim oForm As SAPbouiCOM.Form = Nothing
+        Dim Clase As Object = Nothing
+
+        Try
+
+            oForm = objGlobal.SBOApp.Forms.Item(infoEvento.FormUID)
+
+            Select Case oForm.TypeEx
+                Case "143"
+                    Clase = New EXO_143(objGlobal)
+                    Return CType(Clase, EXO_143).SBOApp_RightClickEvent(infoEvento)
+            End Select
+
+            Return MyBase.SBOApp_RightClickEvent(infoEvento)
+
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_TipoMensaje.Excepcion)
+            Return False
+        Finally
+            If objGlobal.SBOApp.ClientType = BoClientType.ct_Desktop Then
+                EXO_CleanCOM.CLiberaCOM.liberaCOM(CType(oForm, Object))
+            End If
             Clase = Nothing
         End Try
     End Function

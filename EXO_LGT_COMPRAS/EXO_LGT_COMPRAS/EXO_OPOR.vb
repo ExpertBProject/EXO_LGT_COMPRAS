@@ -114,7 +114,7 @@ Public Class EXO_OPOR
 #Region "Botones"
             oItem = oForm.Items.Add("btnENV", SAPbouiCOM.BoFormItemTypes.it_BUTTON)
             oItem.Left = oForm.Items.Item("2").Left + oForm.Items.Item("2").Width + 5
-            oItem.Width = oForm.Items.Item("2").Width * 2
+            oItem.Width = oForm.Items.Item("2").Width + 30
             oItem.Top = oForm.Items.Item("2").Top
             oItem.Height = oForm.Items.Item("2").Height
             oItem.Enabled = False
@@ -168,7 +168,7 @@ Public Class EXO_OPOR
     End Function
     Public Function EnviarDoc(ByRef oForm As SAPbouiCOM.Form) As Boolean
 #Region "Variables"
-        Dim sDocEntry As String = "" : Dim sDocNum As String = ""
+        Dim sDocEntry As String = "" : Dim sDocNum As String = "" : Dim sFecha As String = ""
         Dim sRutaFicheros As String = "" : Dim rutaCrystal As String = ""
         Dim sContacto As String = "" : Dim sIC As String = "" : Dim sMailProveedor As String = ""
         Dim sMensaje As String = ""
@@ -182,9 +182,10 @@ Public Class EXO_OPOR
         Try
             sDocEntry = oForm.DataSources.DBDataSources.Item("OPOR").GetValue("DocEntry", 0).ToUpper
             sDocNum = oForm.DataSources.DBDataSources.Item("OPOR").GetValue("DocNum", 0).ToUpper
-            rutaCrystal = objGlobal.pathDLL : rutaCrystal = objGlobal.pathCrystal
+            sFecha = oForm.DataSources.DBDataSources.Item("OPOR").GetValue("DocDate", 0).ToUpper
+            rutaCrystal = objGlobal.path : rutaCrystal = objGlobal.pathCrystal
             sCrystal = objGlobal.funcionesUI.refDi.OGEN.valorVariable("RPT_PED_COMPRAS")
-            sRutaFicheros = objGlobal.refDi.OGEN.pathDLL & "\08.Historico\PEDCOMPRAS\"
+            sRutaFicheros = objGlobal.refDi.OGEN.pathGeneral & "\08.Historico\PEDCOMPRAS\"
             If System.IO.Directory.Exists(sRutaFicheros) = False Then
                 System.IO.Directory.CreateDirectory(sRutaFicheros)
             Else
@@ -207,7 +208,7 @@ Public Class EXO_OPOR
                 sSQL = "SELECT ""E_MailL"" FROM ""OCPR"" WHERE ""CardCode""='" & sIC & "' and ""CntctCode""='" & sContacto & "' "
                 sMailProveedor = objGlobal.refDi.SQL.sqlStringB1(sSQL)
                 If sMailProveedor.Trim <> "" Then
-                    GenerarCrystal(rutaCrystal, sCrystal, sDocEntry, sRutaFicheros, sReport)
+                    GenerarCrystal(rutaCrystal, sCrystal, sDocEntry, sDocNum, sFecha, sRutaFicheros, sReport)
                     EnviarMail(sRutaFicheros, sReport, sDocNum, sMailProveedor)
                 Else
                     sMensaje = "El contacto no tiene asignado un Mail. No se puede enviar el documento."
@@ -229,7 +230,7 @@ Public Class EXO_OPOR
 
         End Try
     End Function
-    Public Sub GenerarCrystal(ByVal rutaCrystal As String, ByVal sCrystal As String, ByVal sDocEntry As String, ByVal sFileName As String, ByRef sReport As String)
+    Public Sub GenerarCrystal(ByVal rutaCrystal As String, ByVal sCrystal As String, ByVal sDocEntry As String, ByVal sDocNum As String, ByVal sFecha As String, ByVal sFileName As String, ByRef sReport As String)
 
         Dim oCRReport As New CrystalDecisions.CrystalReports.Engine.ReportDocument()
         Dim oFileDestino As CrystalDecisions.Shared.DiskFileDestinationOptions = Nothing
@@ -261,16 +262,17 @@ Public Class EXO_OPOR
             oCRReport.ApplyNewServer(sDriver, sServer, sUser, sPwd, sBBDD)
 
             oCRReport.SetParameterValue("DocKey@", sDocEntry)
-
+            oCRReport.SetParameterValue("ObjectId@", "22")
+            oCRReport.SetParameterValue("Schema@", sBBDD)
 
             'Preparamos para la exportación
-            sReport = sFileName & "\" & objGlobal.compañia.CompanyDB.ToString & "_PEDCOMP" & objGlobal.compañia.UserName & ".pdf"
+            sReport = sFileName & "PEDIDO_" & sDocNum & "_" & sFecha & ".pdf"
             'Compruebo si existe y lo borro
-            If IO.File.Exists(sFileName) Then
-                IO.File.Delete(sFileName)
+            If IO.File.Exists(sReport) Then
+                IO.File.Delete(sReport)
             End If
             objGlobal.SBOApp.StatusBar.SetText("Generando pdf para envio impresión...Espere por favor", BoMessageTime.bmt_Long, BoStatusBarMessageType.smt_Warning)
-            oCRReport.ExportToDisk(ExportFormatType.PortableDocFormat, sFileName)
+            oCRReport.ExportToDisk(ExportFormatType.PortableDocFormat, sReport)
 
 
             'Cerramos
@@ -304,7 +306,7 @@ Public Class EXO_OPOR
                 correo.Attachments.Add(adjunto)
             End If
 
-            Dim FicheroCab As String = sFileName & "\mail.htm"
+            Dim FicheroCab As String = objGlobal.refDi.OGEN.pathGeneral & "\08.Historico\mail.htm"
             Dim srCAB As StreamReader = New StreamReader(FicheroCab)
 
             cuerpo = srCAB.ReadToEnd()
@@ -318,6 +320,7 @@ Public Class EXO_OPOR
                 Case "2" : correo.Priority = System.Net.Mail.MailPriority.High
                 Case Else : correo.Priority = System.Net.Mail.MailPriority.Normal
             End Select
+            sNotificacion = objGlobal.funcionesUI.refDi.OGEN.valorVariable("ENV_NOTIFICACION")
             Select Case sNotificacion.Trim
                 Case "0" : correo.DeliveryNotificationOptions = Net.Mail.DeliveryNotificationOptions.None
                 Case "1" : correo.DeliveryNotificationOptions = Net.Mail.DeliveryNotificationOptions.OnSuccess

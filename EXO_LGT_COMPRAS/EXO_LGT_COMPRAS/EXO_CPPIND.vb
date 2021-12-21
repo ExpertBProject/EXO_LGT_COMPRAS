@@ -1,5 +1,4 @@
-﻿Imports SAPbobsCOM
-Imports SAPbouiCOM
+﻿Imports SAPbouiCOM
 Public Class EXO_CPPIND
     Private objGlobal As EXO_UIAPI.EXO_UIAPI
 
@@ -409,7 +408,7 @@ Public Class EXO_CPPIND
 #Region "Precio Suplemento"
                             sSQL = "SELECT TOP 1 L.""U_EXO_SUP"" FROM ""@EXO_SUPLEMENTOL"" L INNER JOIN ""@EXO_SUPLEMENTO"" C ON L.""Code""=C.""Code"" "
                             sSQL &= " WHERE ""U_EXO_IC""='" & sCardCode & "' and ""U_EXO_ART""='" & sItemCode & "' and ""U_EXO_CAT"" ='" & sCatalogo & "' and ( MONTH(L.""U_EXO_FECHA"")<='" & sMes & "' and YEAR(L.""U_EXO_FECHA"")='" & sAnno & "') "
-                            sSQL &= " ORDEER BY ""U_EXO_FECHA"" desc"
+                            sSQL &= " ORDER BY ""U_EXO_FECHA"" desc"
                             dPrecioSuplemento = oobjGlobal.refDi.SQL.sqlNumericaB1(sSQL)
 #End Region
                             dPrecio = dPrecioIndice + dPrecioSuplemento
@@ -447,7 +446,7 @@ Public Class EXO_CPPIND
                                                 Dim dInicioMesActual As Date = New Date(dFecha.Year, dFecha.Month, 1)
                                                 Dim dFinMesActual As Date = New Date(dFecha.Year, dFecha.Month, DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day)
                                                 oOSPP = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oSpecialPrices), SAPbobsCOM.SpecialPrices)
-                                                If oOSPP.GetByKeyDiscounts(sItemCode, CInt(sCodTarifa)) = True Then
+                                                If oOSPP.GetByKey(sItemCode, sCardCode) = True Then
                                                     oOSPP.Valid = SAPbobsCOM.BoYesNoEnum.tYES
 
                                                     oRs.DoQuery("SELECT COUNT(t2.""LINENUM"") ""CONTADOR"" " &
@@ -456,26 +455,26 @@ Public Class EXO_CPPIND
                                             "t1.""CardCode"" = t2.""CardCode"" " &
                                             "WHERE COALESCE(t1.""Valid"", 'N') = 'Y' " &
                                             "AND t2.""ItemCode"" = '" & sItemCode & "' " &
-                                            "AND t2.""CardCode"" = '*' || '" & sCodTarifa & "'")
+                                            "AND t2.""CardCode"" = '" & sCardCode & "' and ""ListNum""='0' ")
 
                                                     If oRs.RecordCount > 0 Then
                                                         iContPrecios = CInt(oRs.Fields.Item("CONTADOR").Value.ToString)
                                                     Else
                                                         iContPrecios = 0
                                                     End If
-
-                                                    oRs.DoQuery("SELECT t2.""LINENUM"" " &
+                                                    sSQL = "SELECT t2.""LINENUM"" " &
                                             "FROM ""OSPP"" t1 INNER JOIN " &
                                             """SPP1"" t2 ON t1.""ItemCode"" = t2.""ItemCode"" AND " &
                                             "t1.""CardCode"" = t2.""CardCode"" " &
                                             "WHERE COALESCE(t1.""Valid"", 'N') = 'Y' " &
                                             "AND t2.""ItemCode"" = '" & sItemCode & "' " &
-                                            "AND t2.""CardCode"" = '*' || '" & sCodTarifa & "' " &
+                                            "AND t2.""CardCode"" = '" & sCardCode & "'  and t2.""ListNum""='0' " &
                                             "AND ((CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') END <= CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & "01' END " &
                                             "AND CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') END >= CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & "01' END) " &
                                             "OR (CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') END <= CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & Right("0" & DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day.ToString, 2) & "' END " &
                                             "AND CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') END >= CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & Right("0" & DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day.ToString, 2) & "' END)) " &
-                                            "ORDER BY t2.""LINENUM""")
+                                            "ORDER BY t2.""LINENUM"" "
+                                                    oRs.DoQuery(sSQL)
 
                                                     oXml.LoadXml(oRs.GetAsXML())
                                                     oNodes = oXml.SelectNodes("//row")
@@ -507,7 +506,8 @@ Public Class EXO_CPPIND
                                                 Else
                                                     oOSPP.Valid = SAPbobsCOM.BoYesNoEnum.tYES
                                                     oOSPP.ItemCode = sItemCode
-                                                    oOSPP.PriceListNum = CInt(sCodTarifa)
+                                                    oOSPP.CardCode = sCardCode
+                                                    oOSPP.PriceListNum = 0 'CInt(sCodTarifa)
 
                                                     oOSPP.SpecialPricesDataAreas.AutoUpdate = SAPbobsCOM.BoYesNoEnum.tNO
                                                     oOSPP.SpecialPricesDataAreas.PriceListNo = 0

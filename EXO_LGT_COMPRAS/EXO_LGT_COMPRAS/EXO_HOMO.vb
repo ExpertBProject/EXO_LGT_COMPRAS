@@ -1,5 +1,4 @@
-﻿Imports SAPbobsCOM
-Imports SAPbouiCOM
+﻿Imports SAPbouiCOM
 Public Class EXO_HOMO
     Private objGlobal As EXO_UIAPI.EXO_UIAPI
 
@@ -322,17 +321,17 @@ Public Class EXO_HOMO
                         IL = 0 : IC = 0 : TOTAL = 0
                     End If
                     iRecep += 1
-                    Select Case oForm.DataSources.DataTables.Item(sData).GetValue("Demérito", i).ToString
-                        Case "3" : iD3Cal += 1
-                        Case "15" : iD15Cal += 1
-                        Case "45" : iD45Cal += 1
-                        Case "200" : iD200Cal += 1
-                    End Select
 
                     'Calculamos
                     sSQL = "SELECT * FROM ""PDN1"" WHere ""DocEntry""=" & oForm.DataSources.DataTables.Item(sData).GetValue("Nº Interno", i).ToString
                     oRsLin.DoQuery(sSQL)
                     For lin = 0 To oRsLin.RecordCount - 1
+                        Select Case oRsLin.Fields.Item("U_EXO_DEMECAL").Value.ToString
+                            Case "3" : iD3Cal += 1
+                            Case "15" : iD15Cal += 1
+                            Case "45" : iD45Cal += 1
+                            Case "200" : iD200Cal += 1
+                        End Select
                         Dim dFecha As Date = CDate(oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString)
                         Dim sFechaLin As String = oRsLin.Fields.Item("ShipDate").Value.ToString
                         Dim dFechaLin As Date = CDate(oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString)
