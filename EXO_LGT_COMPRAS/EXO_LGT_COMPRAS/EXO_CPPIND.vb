@@ -51,10 +51,10 @@ Public Class EXO_CPPIND
                     Exit Function
                 End If
             End Try
-            sSQL = "SELECT DISTINCT ""Category"" ""COD"", ""Category"" ""ANNO"" FROM ""OFPR"" order by ""Category"" "
-            objGlobal.funcionesUI.cargaCombo(CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).ValidValues, sSQL)
-            CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).ExpandType = BoExpandType.et_ValueOnly
-            CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).Select(Now.Year.ToString, BoSearchKey.psk_ByValue)
+            'sSQL = "SELECT DISTINCT ""Category"" ""COD"", ""Category"" ""ANNO"" FROM ""OFPR"" order by ""Category"" "
+            'objGlobal.funcionesUI.cargaCombo(CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).ValidValues, sSQL)
+            'CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).ExpandType = BoExpandType.et_ValueOnly
+            'CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).Select(Now.Year.ToString, BoSearchKey.psk_ByValue)
             oForm.Items.Item("btn_Cal").Enabled = False
             CargarForm = True
         Catch exCOM As System.Runtime.InteropServices.COMException
@@ -212,7 +212,8 @@ Public Class EXO_CPPIND
                     End If
                 End If
             ElseIf pVal.ItemUID = "btn_Fich" Then
-                Cargar_Grid(oForm, CType(oForm.Items.Item("cbPER").Specific, SAPbouiCOM.ComboBox).Selected.Value.ToString)
+
+                Cargar_Grid(oForm)
                 oForm.Items.Item("btn_Cal").Enabled = True
             End If
 
@@ -226,12 +227,14 @@ Public Class EXO_CPPIND
             EXO_CleanCOM.CLiberaCOM.Form(oForm)
         End Try
     End Function
-    Private Sub Cargar_Grid(ByRef oForm As SAPbouiCOM.Form, ByVal sPeriodo As String)
+    Private Sub Cargar_Grid(ByRef oForm As SAPbouiCOM.Form)
         Dim sSQL As String = ""
         Dim oRs As SAPbobsCOM.Recordset = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+        Dim sDFecha As String = "" : Dim sHFecha As String = ""
         Try
             oForm.Freeze(True)
-
+            sDFecha = CType(oForm.Items.Item("txtDFceha").Specific, SAPbouiCOM.EditText).Value.ToString
+            sHFecha = CType(oForm.Items.Item("txtHFceha").Specific, SAPbouiCOM.EditText).Value.ToString
             'Ahora cargamos el Grid con los datos guardados
             objGlobal.SBOApp.StatusBar.SetText("Cargando Documentos en pantalla ... Espere por favor", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
             sSQL = "SELECT 'Y' as ""Sel"", '     ' as ""Estado"", CAB.""DocEntry"" ""Nº Interno"", CAB.""DocNum"" ""Nº Documento"", CAB.""CardCode"" ""Código"", CAB.""CardName"" ""Nombre"", CAB.""DocDate"" ""Fecha Contable"" , "
@@ -241,7 +244,14 @@ Public Class EXO_CPPIND
             sSQL &= " INNER JOIN ""PDN1"" LIN On CAB.""DocEntry""=LIN.""DocEntry"" "
             sSQL &= " INNER JOIN ""OITM"" ITM On LIN.""ItemCode""=ITM.""ItemCode"" "
             sSQL &= " INNER JOIN ""OCRD"" IC ON IC.""CardCode""=CAB.""CardCode"" "
-            sSQL &= "WHERE CAB.""DocStatus""<>'C' and CAB.""CANCELED""='N' and YEAR(CAB.""DocDate"")='" & sPeriodo & "'  and ITM.""QryGroup6""='Y' "
+            sSQL &= "WHERE CAB.""DocStatus""<>'C' and CAB.""CANCELED""='N' "
+            If sDFecha.Trim <> "" Then
+                sSQL &= " And CAB.""DocDate"">='" & sDFecha & "' "
+            End If
+            If sHFecha.Trim <> "" Then
+                sSQL &= " And CAB.""DocDate"">='" & sHFecha & "' "
+            End If
+            sSQL &= " And ITM.""QryGroup6""='Y' "
             sSQL &= " ORDER BY CAB.""CardCode"", CAB.""DocNum"",LIN.""LineNum"" "
             'Cargamos grid
             oForm.DataSources.DataTables.Item("DT_DOC").ExecuteQuery(sSQL)

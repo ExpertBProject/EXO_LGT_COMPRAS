@@ -139,6 +139,11 @@ Public Class INICIO
             objGlobal.refDi.OGEN.fijarValorVariable("DIR_CTRL_REF", "\\xper-rdpdes02\compartidaB1\Lingotes\Ficheros\08.Historico\CTRL_REF\")
             objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""DIR_CTRL_REF"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
         End If
+
+        If Not objGlobal.refDi.OGEN.existeVariable("DIR_PESOS") Then
+            objGlobal.refDi.OGEN.fijarValorVariable("DIR_PESOS", "\\xper-rdpdes02\compartidaB1\Lingotes\Ficheros\08.Historico\PESOS")
+            objGlobal.SBOApp.StatusBar.SetText("Creado Variable ""DIR_PESOS"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+        End If
     End Sub
     Private Sub CargaFirma()
         Dim path As String = objGlobal.refDi.OGEN.pathDLL & "\08.Historico\"

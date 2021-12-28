@@ -333,7 +333,7 @@ Public Class EXO_HOMO
                             Case "200" : iD200Cal += 1
                         End Select
                         Dim dFecha As Date = CDate(oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString)
-                        Dim sFechaLin As String = oRsLin.Fields.Item("ShipDate").Value.ToString
+                        Dim sFechaLin As String = oRsLin.Fields.Item("U_EXO_FECHAPEDIDO").Value.ToString
                         Dim dFechaLin As Date = CDate(oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString)
                         Dim iDiasDif As Long = 0
                         If sFechaLin <> "" Then

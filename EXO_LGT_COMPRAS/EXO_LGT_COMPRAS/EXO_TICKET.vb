@@ -165,7 +165,7 @@ Public Class EXO_TICKET
 #Region "Variables"
         Dim sArchivo As String = objGlobal.refDi.OGEN.pathGeneral & "\08.Historico\DOC_CARGADOS\" & objGlobal.compañia.CompanyDB & "\COMPRAS\PESOS\"
         Dim sTipoArchivo As String = "Ficheros CSV|*.csv|Texto|*.txt"
-        Dim sArchivoOrigen As String = ""
+        Dim sArchivoOrigen As String = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_PESOS") & "\Peso.csv"
         Dim sNomFICH As String = ""
 #End Region
         Try
@@ -173,18 +173,16 @@ Public Class EXO_TICKET
                 System.IO.Directory.CreateDirectory(sArchivo)
             End If
 
-            'Tenemos que controlar que es cliente o web
-            If objGlobal.SBOApp.ClientType = SAPbouiCOM.BoClientType.ct_Browser Then
-                sArchivoOrigen = objGlobal.SBOApp.GetFileFromBrowser() 'Modificar
-            Else
-                'Controlar el tipo de fichero que vamos a abrir según campo de formato
-                sArchivoOrigen = objGlobal.funciones.OpenDialogFiles("Abrir archivo como", sTipoArchivo)
-            End If
-
-            If Len(sArchivoOrigen.Trim) = 0 Then
-                CType(oForm.Items.Item("txt_Fich").Specific, SAPbouiCOM.EditText).Value = ""
-                objGlobal.SBOApp.MessageBox("Debe indicar un archivo a importar.")
-                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Debe indicar un archivo a importar.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+            ''Tenemos que controlar que es cliente o web
+            'If objGlobal.SBOApp.ClientType = SAPbouiCOM.BoClientType.ct_Browser Then
+            '    sArchivoOrigen = objGlobal.SBOApp.GetFileFromBrowser() 'Modificar
+            'Else
+            '    'Controlar el tipo de fichero que vamos a abrir según campo de formato
+            '    sArchivoOrigen = objGlobal.funciones.OpenDialogFiles("Abrir archivo como", sTipoArchivo)
+            'End If
+            If IO.File.Exists(sArchivoOrigen) = False Then
+                objGlobal.SBOApp.MessageBox("No existe fichero """ & sArchivoOrigen & """ a importar.")
+                objGlobal.SBOApp.StatusBar.SetText("(EXO) - No existe fichero """ & sArchivoOrigen & """ a importar.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
 
                 Exit Sub
             Else

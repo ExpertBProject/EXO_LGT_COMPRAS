@@ -29,9 +29,22 @@ Public Class EXO_GLOBALES
         If IO.Directory.Exists(sPath) = False Then
             IO.Directory.CreateDirectory(sPath)
         End If
+
         If IO.File.Exists(sArchivo) = True Then
             IO.File.Delete(sArchivo)
         End If
+
+        'Borramos Hco.
+        Dim Fecha As DateTime = DateTime.Now
+        For Each archivo As String In My.Computer.FileSystem.GetFiles(sPath, FileIO.SearchOption.SearchTopLevelOnly)
+            Dim Fecha_Archivo As DateTime = My.Computer.FileSystem.GetFileInfo(archivo).LastWriteTime
+            Dim diferencia = (CType(Fecha, DateTime) - CType(Fecha_Archivo, DateTime)).TotalDays
+
+            If diferencia >= 120 Then ' Nº de días
+                File.Delete(archivo)
+            End If
+        Next
+
         'Subimos el archivo
         oObjGlobal.SBOApp.StatusBar.SetText("(EXO) - Comienza la Copia de seguridad del fichero - " & sArchivoOrigen & " -.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
         If oObjGlobal.SBOApp.ClientType = BoClientType.ct_Browser Then

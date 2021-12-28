@@ -128,7 +128,7 @@ Public Class EXO_143
 #Region "Variables"
         Dim sArchivo As String = objGlobal.refDi.OGEN.pathGeneral & "\08.Historico\DOC_CARGADOS\" & objGlobal.compañia.CompanyDB & "\COMPRAS\PESOS\"
         Dim sTipoArchivo As String = "Ficheros CSV|*.csv|Texto|*.txt"
-        Dim sArchivoOrigen As String = ""
+        Dim sArchivoOrigen As String = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_PESOS") & "\Peso.csv"
         Dim sNomFICH As String = ""
 #End Region
         Try
@@ -136,18 +136,17 @@ Public Class EXO_143
                 System.IO.Directory.CreateDirectory(sArchivo)
             End If
 
-            'Tenemos que controlar que es cliente o web
-            If objGlobal.SBOApp.ClientType = SAPbouiCOM.BoClientType.ct_Browser Then
-                sArchivoOrigen = objGlobal.SBOApp.GetFileFromBrowser() 'Modificar
-            Else
-                'Controlar el tipo de fichero que vamos a abrir según campo de formato
-                sArchivoOrigen = objGlobal.funciones.OpenDialogFiles("Abrir archivo como", sTipoArchivo)
-            End If
+            ''Tenemos que controlar que es cliente o web
+            'If objGlobal.SBOApp.ClientType = SAPbouiCOM.BoClientType.ct_Browser Then
+            '    sArchivoOrigen = objGlobal.SBOApp.GetFileFromBrowser() 'Modificar
+            'Else
+            '    'Controlar el tipo de fichero que vamos a abrir según campo de formato
+            '    sArchivoOrigen = objGlobal.funciones.OpenDialogFiles("Abrir archivo como", sTipoArchivo)
+            'End If
 
-            If Len(sArchivoOrigen.Trim) = 0 Then
-                CType(oForm.Items.Item("txt_Fich").Specific, SAPbouiCOM.EditText).Value = ""
-                objGlobal.SBOApp.MessageBox("Debe indicar un archivo a importar.")
-                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Debe indicar un archivo a importar.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+            If IO.File.Exists(sArchivoOrigen) = False Then
+                objGlobal.SBOApp.MessageBox("No existe fichero """ & sArchivoOrigen & """ a importar.")
+                objGlobal.SBOApp.StatusBar.SetText("(EXO) - No existe fichero """ & sArchivoOrigen & """ a importar.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
 
                 Exit Sub
             Else
@@ -239,6 +238,13 @@ Public Class EXO_143
                                         CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("U_EXO_HORA_S").Cells.Item(_iLineNumRightClick).Specific, SAPbouiCOM.EditText).Value = sHora
                                     End Try
                             End Select
+                            Dim dPesoEntrada As Double = 0 : Dim dPesoSalida As Double = 0
+                            dPesoEntrada = EXO_GLOBALES.DblTextToNumber(objGlobal.compañia, CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("U_EXO_PESO_E").Cells.Item(_iLineNumRightClick).Specific, SAPbouiCOM.EditText).Value.ToString)
+                            dPesoSalida = EXO_GLOBALES.DblTextToNumber(objGlobal.compañia, CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("U_EXO_PESO_S").Cells.Item(_iLineNumRightClick).Specific, SAPbouiCOM.EditText).Value.ToString)
+                            Dim dPeso As Double = dPesoEntrada - dPesoSalida
+                            If dPeso > 0 Then
+                                CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("11").Cells.Item(_iLineNumRightClick).Specific, SAPbouiCOM.EditText).Value = EXO_GLOBALES.DblNumberToText(objGlobal.compañia, dPeso, EXO_GLOBALES.FuenteInformacion.Otros)
+                            End If
 
                         Catch ex As Microsoft.VisualBasic.
                             FileIO.MalformedLineException
