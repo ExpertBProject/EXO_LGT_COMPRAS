@@ -9,6 +9,123 @@ Public Class EXO_143
     Public Sub New(ByRef objG As EXO_UIAPI.EXO_UIAPI)
         Me.objGlobal = objG
     End Sub
+    Public Function SBOApp_ItemEvent(ByVal infoEvento As ItemEvent) As Boolean
+        Try
+            'Apaño por un error que da EXO_Basic.dll al consultar infoEvento.FormTypeEx
+            Try
+                If infoEvento.FormTypeEx <> "" Then
+
+                End If
+            Catch ex As Exception
+                Return False
+            End Try
+
+            If infoEvento.InnerEvent = False Then
+                If infoEvento.BeforeAction = False Then
+                    Select Case infoEvento.FormTypeEx
+                        Case "143"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
+
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+
+                                Case SAPbouiCOM.BoEventTypes.et_VALIDATE
+                                    If EventHandler_VALIDATE_After(infoEvento) = False Then
+                                        Return False
+                                    End If
+                                Case SAPbouiCOM.BoEventTypes.et_KEY_DOWN
+
+                                Case SAPbouiCOM.BoEventTypes.et_FORM_ACTIVATE
+
+                            End Select
+                    End Select
+                ElseIf infoEvento.BeforeAction = True Then
+                    Select Case infoEvento.FormTypeEx
+                        Case "143"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_COMBO_SELECT
+
+                                Case SAPbouiCOM.BoEventTypes.et_CLICK
+
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+
+                                Case SAPbouiCOM.BoEventTypes.et_VALIDATE
+
+                                Case SAPbouiCOM.BoEventTypes.et_KEY_DOWN
+
+                                Case SAPbouiCOM.BoEventTypes.et_MATRIX_LINK_PRESSED
+
+                            End Select
+                    End Select
+                End If
+            Else
+                If infoEvento.BeforeAction = False Then
+                    Select Case infoEvento.FormTypeEx
+                        Case "143"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_FORM_LOAD
+
+                                Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
+
+                                Case SAPbouiCOM.BoEventTypes.et_GOT_FOCUS
+
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+
+                            End Select
+                    End Select
+                Else
+                    Select Case infoEvento.FormTypeEx
+                        Case "143"
+                            Select Case infoEvento.EventType
+                                Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
+
+                                Case SAPbouiCOM.BoEventTypes.et_PICKER_CLICKED
+
+                                Case SAPbouiCOM.BoEventTypes.et_ITEM_PRESSED
+
+                            End Select
+                    End Select
+                End If
+            End If
+
+            Return True
+
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+            Return False
+        End Try
+    End Function
+    Private Function EventHandler_VALIDATE_After(ByVal pVal As ItemEvent) As Boolean
+        Dim oForm As SAPbouiCOM.Form = Nothing
+        Dim sSQL As String = ""
+
+        EventHandler_VALIDATE_After = False
+
+        Try
+            oForm = objGlobal.SBOApp.Forms.Item(pVal.FormUID)
+            If pVal.ItemUID = "38" Then
+                If (pVal.ColUID = "U_EXO_PESO_E" Or pVal.ColUID = "U_EXO_PESO_S") And pVal.ItemChanged = True Then
+                    Dim dPesoEntrada As Double = 0 : Dim dPesoSalida As Double = 0
+                    dPesoEntrada = EXO_GLOBALES.DblTextToNumber(objGlobal.compañia, CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("U_EXO_PESO_E").Cells.Item(pVal.Row).Specific, SAPbouiCOM.EditText).Value.ToString)
+                    dPesoSalida = EXO_GLOBALES.DblTextToNumber(objGlobal.compañia, CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("U_EXO_PESO_S").Cells.Item(pVal.Row).Specific, SAPbouiCOM.EditText).Value.ToString)
+                    Dim dPeso As Double = dPesoEntrada - dPesoSalida
+                    If dPeso > 0 Then
+                        Try
+                            CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("11").Cells.Item(pVal.Row).Specific, SAPbouiCOM.EditText).Value = EXO_GLOBALES.DblNumberToText(objGlobal.compañia, dPeso, EXO_GLOBALES.FuenteInformacion.Otros)
+                        Catch ex As Exception
+                            objGlobal.SBOApp.StatusBar.SetText("La cantidad no puede ser actualizada.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                        End Try
+                    End If
+                End If
+            End If
+            EventHandler_VALIDATE_After = True
+
+        Catch ex As Exception
+            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+        Finally
+            EXO_CleanCOM.CLiberaCOM.Form(oForm)
+        End Try
+    End Function
     Public Function SBOApp_RightClickEvent(ByVal infoEvento As ContextMenuInfo) As Boolean
         Dim oForm As SAPbouiCOM.Form = Nothing
         Dim oCreationPackage As SAPbouiCOM.MenuCreationParams
@@ -157,6 +274,7 @@ Public Class EXO_143
                 EXO_GLOBALES.Copia_Seguridad(sArchivoOrigen, sArchivo, objGlobal)
                 'Ahora abrimos el fichero para tratarlo
                 TratarFichero(sArchivo, sBoton, oForm)
+                IO.File.Delete(sArchivoOrigen)
             End If
 
         Catch ex As Exception
@@ -171,7 +289,6 @@ Public Class EXO_143
         Dim sDelimitador As String = "2"
         Try
             objGlobal.SBOApp.StatusBar.SetText("Cargando datos...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-
 
 #Region "TXT|CSV"
             If File.Exists(sArchivo) Then

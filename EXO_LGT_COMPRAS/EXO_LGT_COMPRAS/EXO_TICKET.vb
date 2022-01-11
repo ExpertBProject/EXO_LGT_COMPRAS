@@ -193,6 +193,7 @@ Public Class EXO_TICKET
                 EXO_GLOBALES.Copia_Seguridad(sArchivoOrigen, sArchivo, objGlobal)
                 'Ahora abrimos el fichero para tratarlo
                 TratarFichero(sArchivo, sBoton, oForm)
+                IO.File.Delete(sArchivoOrigen)
             End If
 
         Catch ex As Exception

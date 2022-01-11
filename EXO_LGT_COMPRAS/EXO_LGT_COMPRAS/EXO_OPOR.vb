@@ -1,6 +1,6 @@
 ﻿Imports SAPbouiCOM
+Imports CrystalDecisions.CrystalReports.Engine
 Imports CrystalDecisions.Shared
-Imports EXO_LGT_COMPRAS.Extensions
 Imports System.IO
 
 Public Class EXO_OPOR
@@ -232,35 +232,49 @@ Public Class EXO_OPOR
     End Function
     Public Sub GenerarCrystal(ByVal rutaCrystal As String, ByVal sCrystal As String, ByVal sDocEntry As String, ByVal sDocNum As String, ByVal sFecha As String, ByVal sFileName As String, ByRef sReport As String)
 
-        Dim oCRReport As New CrystalDecisions.CrystalReports.Engine.ReportDocument()
-        Dim oFileDestino As CrystalDecisions.Shared.DiskFileDestinationOptions = Nothing
+        Dim oCRReport As ReportDocument = Nothing
+        Dim oFileDestino As DiskFileDestinationOptions = Nothing
         Dim sServer As String = ""
         Dim sDriver As String = ""
         Dim sBBDD As String = ""
         Dim sUser As String = ""
         Dim sPwd As String = ""
+        Dim sConnection As String = ""
+        Dim oLogonProps As NameValuePairs2 = Nothing
 
-        Dim conrepor As CrystalDecisions.Shared.DataSourceConnections = Nothing
+        Dim conrepor As DataSourceConnections = Nothing
         Try
-
-            'Establecemos las conexiones a la BBDD
-            sServer = objGlobal.compañia.Server
-            sBBDD = objGlobal.compañia.CompanyDB
-            If Right(objGlobal.refDi.OGEN.pathDLL, 6).ToUpper = "DLL_64" Then
-                sDriver = "{B1CRHPROXY}"
-            Else
-                sDriver = "{B1CRHPROXY32}"
-            End If
-
-
-            'sUser = "B1SQLUSER" 
-            sUser = objGlobal.refDi.SQL.usuarioSQL()
-            'sPwd = "12eXo$18" 
-            sPwd = objGlobal.refDi.SQL.claveSQL()
+            oCRReport = New ReportDocument()
 
             oCRReport.Load(rutaCrystal & "\" & sCrystal)
-            oCRReport.ApplyNewServer(sDriver, sServer, sUser, sPwd, sBBDD)
 
+            oCRReport.DataSourceConnections.Clear()
+
+            'Establecemos las conexiones a la BBDD
+            sServer = "hana:30015" ' objGlobal.compañia.Server
+            'sServer = objGlobal.refDi.SQL.dameCadenaConexion.ToString
+            sBBDD = objGlobal.compañia.CompanyDB
+            sUser = objGlobal.refDi.SQL.usuarioSQL
+            sPwd = objGlobal.refDi.SQL.claveSQL
+
+            sDriver = "HDBODBC"
+            sConnection = "DRIVER={" & sDriver & "};UID=" & sUser & ";PWD=" & sPwd & ";SERVERNODE=" & sServer & ";DATABASE=" & sBBDD & ";"
+            'sConnection = "DRIVER={" & sDriver & "};" & sServer & ";DATABASE=" & sBBDD & ";"
+            objGlobal.SBOApp.StatusBar.SetText("Conectando: " & sConnection, BoMessageTime.bmt_Long, BoStatusBarMessageType.smt_Warning)
+            oLogonProps = oCRReport.DataSourceConnections(0).LogonProperties
+            oLogonProps.Set("Provider", sDriver)
+            oLogonProps.Set("Connection String", sConnection)
+
+            oCRReport.DataSourceConnections(0).SetLogonProperties(oLogonProps)
+            oCRReport.DataSourceConnections(0).SetConnection(sServer, sBBDD, False)
+
+            For Each oSubReport As ReportDocument In oCRReport.Subreports
+                For Each oConnection As IConnectionInfo In oSubReport.DataSourceConnections
+                    oConnection.SetConnection(sServer, sBBDD, False)
+                    oConnection.SetLogon(sUser, sPwd)
+                Next
+            Next
+            'Establecemos los parámetros para el report.
             oCRReport.SetParameterValue("DocKey@", sDocEntry)
             oCRReport.SetParameterValue("ObjectId@", "22")
             oCRReport.SetParameterValue("Schema@", sBBDD)
@@ -272,7 +286,21 @@ Public Class EXO_OPOR
                 IO.File.Delete(sReport)
             End If
             objGlobal.SBOApp.StatusBar.SetText("Generando pdf para envio impresión...Espere por favor", BoMessageTime.bmt_Long, BoStatusBarMessageType.smt_Warning)
-            oCRReport.ExportToDisk(ExportFormatType.PortableDocFormat, sReport)
+
+            oCRReport.ExportOptions.ExportFormatType = CrystalDecisions.Shared.ExportFormatType.PortableDocFormat
+
+            oFileDestino = New CrystalDecisions.Shared.DiskFileDestinationOptions
+            oFileDestino.DiskFileName = sReport
+
+            'Le pasamos al reporte el parámetro destino del reporte (ruta)
+            oCRReport.ExportOptions.DestinationOptions = oFileDestino
+
+            'Le indicamos que el reporte no es para mostrarse en pantalla, sino, que es para guardar en disco
+            oCRReport.ExportOptions.ExportDestinationType = CrystalDecisions.Shared.ExportDestinationType.DiskFile
+
+            'Finalmente exportamos el reporte a PDF
+            oCRReport.Export()
+            '            oCRReport.ExportToDisk(ExportFormatType.PortableDocFormat, sReport)
 
 
             'Cerramos
@@ -285,6 +313,7 @@ Public Class EXO_OPOR
             Throw ex
         Finally
             oCRReport = Nothing
+            oFileDestino = Nothing
         End Try
     End Sub
     Public Sub EnviarMail(ByRef sFileName As String, ByRef sReport As String, ByVal sNumPedido As String, ByVal sMailProveedor As String)

@@ -203,6 +203,9 @@ Public Class INICIO
                 Case "142"
                     Clase = New EXO_OPOR(objGlobal)
                     Return CType(Clase, EXO_OPOR).SBOApp_ItemEvent(infoEvento)
+                Case "143"
+                    Clase = New EXO_143(objGlobal)
+                    Return CType(Clase, EXO_143).SBOApp_ItemEvent(infoEvento)
                 Case "UDO_FT_EXO_TICKET"
                     Clase = New EXO_TICKET(objGlobal)
                     Return CType(Clase, EXO_TICKET).SBOApp_ItemEvent(infoEvento)
