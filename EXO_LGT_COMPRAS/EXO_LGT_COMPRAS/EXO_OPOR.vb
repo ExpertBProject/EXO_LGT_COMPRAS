@@ -339,7 +339,7 @@ Public Class EXO_OPOR
             Dim srCAB As StreamReader = New StreamReader(FicheroCab)
 
             cuerpo = srCAB.ReadToEnd()
-            correo.Subject = "Confirmación Pedido Nº " & sNumPedido.ToString()
+            correo.Subject = "Pedido Nº " & sNumPedido.ToString()
             correo.Body = cuerpo
             correo.IsBodyHtml = True
             sPrioridad = objGlobal.funcionesUI.refDi.OGEN.valorVariable("ENV_PRIORIDAD")
