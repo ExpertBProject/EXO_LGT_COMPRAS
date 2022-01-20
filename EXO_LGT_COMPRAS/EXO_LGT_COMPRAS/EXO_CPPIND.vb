@@ -239,7 +239,7 @@ Public Class EXO_CPPIND
             objGlobal.SBOApp.StatusBar.SetText("Cargando Documentos en pantalla ... Espere por favor", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
             sSQL = "SELECT 'Y' as ""Sel"", '     ' as ""Estado"", CAB.""DocEntry"" ""Nº Interno"", CAB.""DocNum"" ""Nº Documento"", CAB.""CardCode"" ""Código"", CAB.""CardName"" ""Nombre"", CAB.""DocDate"" ""Fecha Contable"" , "
             sSQL &= " LIN.""LineNum"" ""Línea"", LIN.""ItemCode"" ""Cód. Artículo"",LIN.""Dscription"" ""Artículo"",LIN.""Quantity"" ""Cantidad"",LIN.""Price"" ""Precio"", LIN.""SubCatNum"" ""Catálogo"", CAB.""U_EXO_CERRAR"" ""Cerrar Doc."" "
-            sSQL &= ",  IC.""QryGroup6""  ""Cerrar Doc. IC"" , CAST('' as varchar(254)) as ""Descripción Estado"" "
+            sSQL &= ",  IC.""QryGroup6""  ""Cerrar Doc. IC"" , ITM.""QryGroup7"" ""Buscar Precio Tarifa"", CAST('' as varchar(254)) as ""Descripción Estado"" "
             sSQL &= " FROM ""OPDN"" CAB "
             sSQL &= " INNER JOIN ""PDN1"" LIN On CAB.""DocEntry""=LIN.""DocEntry"" "
             sSQL &= " INNER JOIN ""OITM"" ITM On LIN.""ItemCode""=ITM.""ItemCode"" "
@@ -249,7 +249,7 @@ Public Class EXO_CPPIND
                 sSQL &= " And CAB.""DocDate"">='" & sDFecha & "' "
             End If
             If sHFecha.Trim <> "" Then
-                sSQL &= " And CAB.""DocDate"">='" & sHFecha & "' "
+                sSQL &= " And CAB.""DocDate""<='" & sHFecha & "' "
             End If
             sSQL &= " And ITM.""QryGroup6""='Y' "
             sSQL &= " ORDER BY CAB.""CardCode"", CAB.""DocNum"",LIN.""LineNum"" "
@@ -277,7 +277,7 @@ Public Class EXO_CPPIND
             oColumnChk.Editable = True
             oColumnChk.Width = 30
 
-            For i = 1 To 15
+            For i = 1 To 16
                 CType(oform.Items.Item("grd_DOC").Specific, SAPbouiCOM.Grid).Columns.Item(i).Type = SAPbouiCOM.BoGridColumnType.gct_EditText
                 oColumnTxt = CType(CType(oform.Items.Item("grd_DOC").Specific, SAPbouiCOM.Grid).Columns.Item(i), SAPbouiCOM.EditTextColumn)
                 oColumnTxt.Editable = False
@@ -291,6 +291,7 @@ Public Class EXO_CPPIND
                     oColumnTxt.RightJustified = True
                 End If
             Next
+            CType(oform.Items.Item("grd_DOC").Specific, SAPbouiCOM.Grid).Columns.Item(15).Type = SAPbouiCOM.BoGridColumnType.gct_CheckBox
 
             CType(oform.Items.Item("grd_DOC").Specific, SAPbouiCOM.Grid).AutoResizeColumns()
 
@@ -341,6 +342,7 @@ Public Class EXO_CPPIND
         Dim dFecha As Date = Now : Dim sFecha As String = "" : Dim sMes As String = "" : Dim sAnno As String = ""
         Dim dPrecioIndice As Double = 0 : Dim dPrecioSuplemento As Double = 0 : Dim dPrecio As Double = 0
         Dim sCodTarifa As String = "" : Dim sNomTarifa As String = ""
+        Dim sBuscarPrecioTarifa As String = "N"
         Dim sCerrarDoc As String = "" : Dim sCerrarDocIC As String = ""
         Dim sCerrar() As String = {"", ""}
 
@@ -387,7 +389,7 @@ Public Class EXO_CPPIND
                     sFecha = oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString()
                     sCerrarDoc = oForm.DataSources.DataTables.Item(sData).GetValue("Cerrar Doc.", i).ToString()
                     sCerrarDocIC = oForm.DataSources.DataTables.Item(sData).GetValue("Cerrar Doc. IC", i).ToString()
-
+                    sBuscarPrecioTarifa = oForm.DataSources.DataTables.Item(sData).GetValue("Buscar Precio Tarifa", i).ToString()
                     If oDoc.GetByKey(CType(sDocEntry, Integer)) = True Then
 #Region "Buscamos el precio"
                         'Buscamos el índice del Catálogo
@@ -400,151 +402,183 @@ Public Class EXO_CPPIND
                                 oobjGlobal.SBOApp.StatusBar.SetText("No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & ", revise los datos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                             End If
                         End If
-                        If sIndice.Trim <> "" Then
-                            dFecha = CDate(sFecha)
-                            sMes = dFecha.Month.ToString("00")
-                            sAnno = dFecha.Year.ToString("0000")
+                        If sBuscarPrecioTarifa = "N" Then
+                            If sIndice.Trim <> "" Then
+                                dFecha = CDate(sFecha)
+                                sMes = dFecha.Month.ToString("00")
+                                sAnno = dFecha.Year.ToString("0000")
 #Region "Precio Indice"
-                            Select Case sIndice
-                                Case "1" : sSQL = "SELECT TOP 1 ""U_EXO_I1"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
-                                Case "2" : sSQL = "SELECT TOP 1 ""U_EXO_I2"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
-                                Case "3" : sSQL = "SELECT TOP 1 ""U_EXO_I3"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
-                                Case Else
-                                    oobjGlobal.SBOApp.StatusBar.SetText("El índice """ & sIndice & """ para el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & " no es correcto, revise los datos. Se para el proceso.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                    Exit Function
-                            End Select
-                            dPrecioIndice = oobjGlobal.refDi.SQL.sqlNumericaB1(sSQL)
+                                Select Case sIndice
+                                    Case "1" : sSQL = "SELECT TOP 1 ""U_EXO_I1"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
+                                    Case "2" : sSQL = "SELECT TOP 1 ""U_EXO_I2"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
+                                    Case "3" : sSQL = "SELECT TOP 1 ""U_EXO_I3"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
+                                    Case "4" : sSQL = "SELECT TOP 1 ""U_EXO_I4"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
+                                    Case "5" : sSQL = "SELECT TOP 1 ""U_EXO_I5"" FROM ""@EXO_PPINDICEL"" WHERE ""Code""='" & sAnno & "' and ""U_EXO_MES""<='" & sMes & "' order by ""U_EXO_MES"" desc"
+                                    Case Else
+                                        oobjGlobal.SBOApp.StatusBar.SetText("El índice """ & sIndice & """ para el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & " no es correcto, revise los datos. Se para el proceso.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                        Exit Function
+                                End Select
+                                dPrecioIndice = oobjGlobal.refDi.SQL.sqlNumericaB1(sSQL)
 #End Region
 #Region "Precio Suplemento"
-                            sSQL = "SELECT TOP 1 L.""U_EXO_SUP"" FROM ""@EXO_SUPLEMENTOL"" L INNER JOIN ""@EXO_SUPLEMENTO"" C ON L.""Code""=C.""Code"" "
-                            sSQL &= " WHERE ""U_EXO_IC""='" & sCardCode & "' and ""U_EXO_ART""='" & sItemCode & "' and ""U_EXO_CAT"" ='" & sCatalogo & "' and ( MONTH(L.""U_EXO_FECHA"")<='" & sMes & "' and YEAR(L.""U_EXO_FECHA"")='" & sAnno & "') "
-                            sSQL &= " ORDER BY ""U_EXO_FECHA"" desc"
-                            dPrecioSuplemento = oobjGlobal.refDi.SQL.sqlNumericaB1(sSQL)
+                                sSQL = "SELECT TOP 1 L.""U_EXO_SUP"" FROM ""@EXO_SUPLEMENTOL"" L INNER JOIN ""@EXO_SUPLEMENTO"" C ON L.""Code""=C.""Code"" "
+                                sSQL &= " WHERE ""U_EXO_IC""='" & sCardCode & "' and ""U_EXO_ART""='" & sItemCode & "' and ""U_EXO_CAT"" ='" & sCatalogo & "' and ( MONTH(L.""U_EXO_FECHA"")<='" & sMes & "' and YEAR(L.""U_EXO_FECHA"")='" & sAnno & "') "
+                                sSQL &= " ORDER BY ""U_EXO_FECHA"" desc"
+                                dPrecioSuplemento = oobjGlobal.refDi.SQL.sqlNumericaB1(sSQL)
 #End Region
-                            dPrecio = dPrecioIndice + dPrecioSuplemento
+                                dPrecio = dPrecioIndice + dPrecioSuplemento
+
+                            Else
+                                oobjGlobal.SBOApp.StatusBar.SetText("No se ha podido Encontrar el índice en el documento Nº" & sDocNum & " y la línea """ & sLineNum & """ , revise los datos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                            End If
+                        Else
+#Region "Buscamos el precio de la Tarifa"
+                            Dim oRsPrecio As SAPbobsCOM.Recordset = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+                            Dim Buscar_Precio As String = ""
+                            sSQL = "select t0.""ItemCode"",t0.""ItemName"",T0.""UserText"",COALESCE(t0.""SHeight1"",0) ""SHeight1"", " +
+                                        " COALESCE(T0.""SLength1"",0) ""SLength1"" ,COALESCE(T0.""SWidth1"",0) ""SWidth1"", " +
+                                        " COALESCE(T0.""SWeight1"",0) ""SWeight1"",  " +
+                                        " Case when coalesce(t3.""Price"",0)>0 then (100-t3.""Discount"")*t1.""Price""/100 When coalesce(t2.""Price"",0) >0 Then (100-t2.""Discount"")*t1.""Price""/100 Else t1.""Price"" End As Price, coalesce(A3.""Rate"",0) As IVA " +
+                                        " ,t1.""Price"" as PrecioOriginal, case when coalesce(t3.""Discount"",0)>0 then t3.""Discount"" when coalesce(t2.""Discount"",0)>0 then t2.""Discount"" else 0 end as Discount, " +
+                                        " case when t0.""UgpEntry""=-1 then 'N' ELSE 'Y' END AS Divisible"
+                            sSQL &= " from ""OITM"" t0  inner join ""ITM1"" t1  On t0.""ItemCode""=t1.""ItemCode"" And coalesce(t0.""frozenFor"",'N')='N' and t1.""PriceList""= (select ""ListNum"" from ""OCRD"" where ""CardCode""='" + sCardCode + "') " +
+                                        " left join ""OSPP"" t2 on t1.""ItemCode""=t2.""ItemCode"" and t2.""CardCode""='" & sCardCode & "' " +
+                                        " LEFT join ""OVTG"" A3  on t0.""VatGourpSa""=A3.""Code"" " +
+                                        "LEFT JOIN ""SPP1"" t3  on t3.""ItemCode""=t2.""ItemCode"" and t2.""CardCode""=t3.""CardCode"" and t3.""FromDate""<='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "' " +
+                                        " And ifnull(T3.""ToDate"",'20991231')>='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "'  "
+                            sSQL &= " where  (t0.""ItemCode"" like '%" & sItemCode & "%' )"
+                            oRsPrecio.DoQuery(sSQL)
+                            If oRsPrecio.RecordCount > 0 Then
+                                Buscar_Precio = oRsPrecio.Fields.Item("Price").Value.ToString
+                            End If
+                            If Buscar_Precio.Trim <> "" Then
+                                dPrecio = EXO_GLOBALES.DblTextToNumber(oobjGlobal.compañia, Buscar_Precio)
+                            Else
+                                dPrecio = 0
+                            End If
+#End Region
+                        End If
 #Region "Actualizamos la línea"
-                            For lin = 0 To oDoc.Lines.Count - 1
-                                oDoc.Lines.SetCurrentLine(lin)
-                                If oDoc.Lines.LineNum = CType(sLineNum, Integer) Then
-                                    oDoc.Lines.UnitPrice = dPrecio
+                        For lin = 0 To oDoc.Lines.Count - 1
+                            oDoc.Lines.SetCurrentLine(lin)
+                            If oDoc.Lines.LineNum = CType(sLineNum, Integer) Then
+                                oDoc.Lines.UnitPrice = dPrecio
 
-                                    If oDoc.Update() <> 0 Then
-                                        sMensaje = oobjGlobal.compañia.GetLastErrorCode.ToString & " / " & oobjGlobal.compañia.GetLastErrorDescription.Replace("'", "")
-                                        oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                        oForm.DataSources.DataTables.Item(sData).SetValue("Estado", i, "ERROR")
-                                        oForm.DataSources.DataTables.Item(sData).SetValue("Descripción Estado", i, sMensaje)
-                                        sCerrar(1) = "ERROR"
-                                    Else
-                                        sMensaje = "Se ha Actualizado correctamente el documento Nº " & sDocNum & " y Nº interno " & sDocEntry & " la línea " & sLineNum
-                                        oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-                                        oForm.DataSources.DataTables.Item(sData).SetValue("Estado", i, "OK")
-                                        oForm.DataSources.DataTables.Item(sData).SetValue("Descripción Estado", i, "Precio: " & dPrecio.ToString)
-                                        If sCerrar(1) <> "ERROR" Then
-                                            sCerrar(1) = "OK"
-                                        End If
+                                If oDoc.Update() <> 0 Then
+                                    sMensaje = oobjGlobal.compañia.GetLastErrorCode.ToString & " / " & oobjGlobal.compañia.GetLastErrorDescription.Replace("'", "")
+                                    oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    oForm.DataSources.DataTables.Item(sData).SetValue("Estado", i, "ERROR")
+                                    oForm.DataSources.DataTables.Item(sData).SetValue("Descripción Estado", i, sMensaje)
+                                    sCerrar(1) = "ERROR"
+                                Else
+                                    sMensaje = "Se ha Actualizado correctamente el documento Nº " & sDocNum & " y Nº interno " & sDocEntry & " la línea " & sLineNum
+                                    oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+                                    oForm.DataSources.DataTables.Item(sData).SetValue("Estado", i, "OK")
+                                    oForm.DataSources.DataTables.Item(sData).SetValue("Descripción Estado", i, "Precio: " & dPrecio.ToString)
+                                    If sCerrar(1) <> "ERROR" Then
+                                        sCerrar(1) = "OK"
+                                    End If
 #Region "Actualizar tarifa"
-                                        If CType(oForm.Items.Item("chkTarifa").Specific, SAPbouiCOM.CheckBox).Checked Then
-                                            oRs = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
-                                            sNomTarifa = oobjGlobal.funcionesUI.refDi.OGEN.valorVariable("Tarifa_Compra")
-                                            sCodTarifa = oobjGlobal.refDi.SQL.sqlStringB1("SELECT ""ListNum"" FROM ""OPLN"" WHERE ""ListName""='" & sNomTarifa & "' ")
-                                            If sCodTarifa.Trim <> "" Then
-                                                'sSQL = "UPDATE ""ITM1"" "
-                                                'sSQL &= " SET ""Price""=" & EXO_GLOBALES.DblNumberToText(oobjGlobal.compañia, dPrecio, EXO_GLOBALES.FuenteInformacion.Otros)
-                                                'sSQL &= " WHERE ""ItemCode""='" & sItemCode & "' and ""PriceList""=" & sCodTarifa
-                                                'oobjGlobal.refDi.SQL.sqlUpdB1(sSQL)
-                                                'Son precios especiales
-                                                Dim dInicioMesActual As Date = New Date(dFecha.Year, dFecha.Month, 1)
-                                                Dim dFinMesActual As Date = New Date(dFecha.Year, dFecha.Month, DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day)
-                                                oOSPP = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oSpecialPrices), SAPbobsCOM.SpecialPrices)
-                                                If oOSPP.GetByKey(sItemCode, sCardCode) = True Then
-                                                    oOSPP.Valid = SAPbobsCOM.BoYesNoEnum.tYES
+                                    If CType(oForm.Items.Item("chkTarifa").Specific, SAPbouiCOM.CheckBox).Checked And sBuscarPrecioTarifa = "N" Then
+                                        oRs = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+                                        sNomTarifa = oobjGlobal.funcionesUI.refDi.OGEN.valorVariable("Tarifa_Compra")
+                                        sCodTarifa = oobjGlobal.refDi.SQL.sqlStringB1("SELECT ""ListNum"" FROM ""OPLN"" WHERE ""ListName""='" & sNomTarifa & "' ")
+                                        If sCodTarifa.Trim <> "" Then
+                                            'sSQL = "UPDATE ""ITM1"" "
+                                            'sSQL &= " SET ""Price""=" & EXO_GLOBALES.DblNumberToText(oobjGlobal.compañia, dPrecio, EXO_GLOBALES.FuenteInformacion.Otros)
+                                            'sSQL &= " WHERE ""ItemCode""='" & sItemCode & "' and ""PriceList""=" & sCodTarifa
+                                            'oobjGlobal.refDi.SQL.sqlUpdB1(sSQL)
+                                            'Son precios especiales
+                                            Dim dInicioMesActual As Date = New Date(dFecha.Year, dFecha.Month, 1)
+                                            Dim dFinMesActual As Date = New Date(dFecha.Year, dFecha.Month, DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day)
+                                            oOSPP = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oSpecialPrices), SAPbobsCOM.SpecialPrices)
+                                            If oOSPP.GetByKey(sItemCode, sCardCode) = True Then
+                                                oOSPP.Valid = SAPbobsCOM.BoYesNoEnum.tYES
 
-                                                    oRs.DoQuery("SELECT COUNT(t2.""LINENUM"") ""CONTADOR"" " &
-                                            "FROM ""OSPP"" t1 INNER JOIN " &
-                                            """SPP1"" t2 ON t1.""ItemCode"" = t2.""ItemCode"" AND " &
-                                            "t1.""CardCode"" = t2.""CardCode"" " &
-                                            "WHERE COALESCE(t1.""Valid"", 'N') = 'Y' " &
-                                            "AND t2.""ItemCode"" = '" & sItemCode & "' " &
-                                            "AND t2.""CardCode"" = '" & sCardCode & "' and ""ListNum""='0' ")
+                                                oRs.DoQuery("SELECT COUNT(t2.""LINENUM"") ""CONTADOR"" " &
+                                                "FROM ""OSPP"" t1 INNER JOIN " &
+                                                """SPP1"" t2 ON t1.""ItemCode"" = t2.""ItemCode"" AND " &
+                                                "t1.""CardCode"" = t2.""CardCode"" " &
+                                                "WHERE COALESCE(t1.""Valid"", 'N') = 'Y' " &
+                                                "AND t2.""ItemCode"" = '" & sItemCode & "' " &
+                                                "AND t2.""CardCode"" = '" & sCardCode & "' and t1.""ListNum""='0' ")
 
-                                                    If oRs.RecordCount > 0 Then
-                                                        iContPrecios = CInt(oRs.Fields.Item("CONTADOR").Value.ToString)
-                                                    Else
-                                                        iContPrecios = 0
-                                                    End If
-                                                    sSQL = "SELECT t2.""LINENUM"" " &
-                                            "FROM ""OSPP"" t1 INNER JOIN " &
-                                            """SPP1"" t2 ON t1.""ItemCode"" = t2.""ItemCode"" AND " &
-                                            "t1.""CardCode"" = t2.""CardCode"" " &
-                                            "WHERE COALESCE(t1.""Valid"", 'N') = 'Y' " &
-                                            "AND t2.""ItemCode"" = '" & sItemCode & "' " &
-                                            "AND t2.""CardCode"" = '" & sCardCode & "'  and t2.""ListNum""='0' " &
-                                            "AND ((CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') END <= CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & "01' END " &
-                                            "AND CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') END >= CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & "01' END) " &
-                                            "OR (CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') END <= CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & Right("0" & DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day.ToString, 2) & "' END " &
-                                            "AND CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') END >= CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & Right("0" & DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day.ToString, 2) & "' END)) " &
-                                            "ORDER BY t2.""LINENUM"" "
-                                                    oRs.DoQuery(sSQL)
-
-                                                    oXml.LoadXml(oRs.GetAsXML())
-                                                    oNodes = oXml.SelectNodes("//row")
-
-                                                    If oRs.RecordCount > 0 Then
-                                                        For j As Integer = oNodes.Count - 1 To 0 Step -1
-                                                            oNode = oNodes.Item(j)
-
-                                                            oOSPP.SpecialPricesDataAreas.SetCurrentLine(CInt(oNode.SelectSingleNode("LINENUM").InnerText))
-                                                            oOSPP.SpecialPricesDataAreas.Delete()
-                                                        Next
-                                                    End If
-
-                                                    iContPrecios -= oRs.RecordCount
-
-                                                    If iContPrecios > 0 Then
-                                                        oOSPP.SpecialPricesDataAreas.Add()
-                                                    End If
-
-                                                    oOSPP.SpecialPricesDataAreas.AutoUpdate = SAPbobsCOM.BoYesNoEnum.tNO
-                                                    oOSPP.SpecialPricesDataAreas.PriceListNo = 0
-                                                    oOSPP.SpecialPricesDataAreas.DateFrom = dInicioMesActual
-                                                    oOSPP.SpecialPricesDataAreas.Dateto = dFinMesActual
-                                                    oOSPP.SpecialPricesDataAreas.SpecialPrice = dPrecio
-
-                                                    If oOSPP.Update() <> 0 Then
-                                                        Throw New Exception(oobjGlobal.compañia.GetLastErrorCode.ToString & " / " & oobjGlobal.compañia.GetLastErrorDescription.Replace("'", ""))
-                                                    End If
+                                                If oRs.RecordCount > 0 Then
+                                                    iContPrecios = CInt(oRs.Fields.Item("CONTADOR").Value.ToString)
                                                 Else
-                                                    oOSPP.Valid = SAPbobsCOM.BoYesNoEnum.tYES
-                                                    oOSPP.ItemCode = sItemCode
-                                                    oOSPP.CardCode = sCardCode
-                                                    oOSPP.PriceListNum = 0 'CInt(sCodTarifa)
-
-                                                    oOSPP.SpecialPricesDataAreas.AutoUpdate = SAPbobsCOM.BoYesNoEnum.tNO
-                                                    oOSPP.SpecialPricesDataAreas.PriceListNo = 0
-                                                    oOSPP.SpecialPricesDataAreas.DateFrom = dInicioMesActual
-                                                    oOSPP.SpecialPricesDataAreas.Dateto = dFinMesActual
-                                                    oOSPP.SpecialPricesDataAreas.SpecialPrice = dPrecio
-
-                                                    If oOSPP.Add() <> 0 Then
-                                                        Throw New Exception(oobjGlobal.compañia.GetLastErrorCode.ToString & " / " & oobjGlobal.compañia.GetLastErrorDescription.Replace("'", ""))
-                                                    End If
+                                                    iContPrecios = 0
                                                 End If
-                                                oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - Se ha actualizado en la Tarifa de compra el artículo " & sItemCode & ".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                                                If oOSPP IsNot Nothing Then System.Runtime.InteropServices.Marshal.FinalReleaseComObject(oOSPP)
-                                                oOSPP = Nothing
+                                                sSQL = "SELECT t2.""LINENUM"" " &
+                                                "FROM ""OSPP"" t1 INNER JOIN " &
+                                                """SPP1"" t2 ON t1.""ItemCode"" = t2.""ItemCode"" AND " &
+                                                "t1.""CardCode"" = t2.""CardCode"" " &
+                                                "WHERE COALESCE(t1.""Valid"", 'N') = 'Y' " &
+                                                "AND t2.""ItemCode"" = '" & sItemCode & "' " &
+                                                "AND t2.""CardCode"" = '" & sCardCode & "'  and t2.""ListNum""='0' " &
+                                                "AND ((CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') END <= CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & "01' END " &
+                                                "AND CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') END >= CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & "01' END) " &
+                                                "OR (CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') END <= CASE WHEN TO_CHAR(COALESCE(t2.""FromDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & Right("0" & DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day.ToString, 2) & "' END " &
+                                                "AND CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') END >= CASE WHEN TO_CHAR(COALESCE(t2.""ToDate"", ''), 'YYYYMMDD') = '' THEN '' ELSE '" & Right("000" & dFecha.Year.ToString, 4) & Right("0" & dFecha.Month.ToString, 2) & Right("0" & DateSerial(dFecha.Year, dFecha.Month + 1, 0).Day.ToString, 2) & "' END)) " &
+                                                "ORDER BY t2.""LINENUM"" "
+                                                oRs.DoQuery(sSQL)
+
+                                                oXml.LoadXml(oRs.GetAsXML())
+                                                oNodes = oXml.SelectNodes("//row")
+
+                                                If oRs.RecordCount > 0 Then
+                                                    For j As Integer = oNodes.Count - 1 To 0 Step -1
+                                                        oNode = oNodes.Item(j)
+
+                                                        oOSPP.SpecialPricesDataAreas.SetCurrentLine(CInt(oNode.SelectSingleNode("LINENUM").InnerText))
+                                                        oOSPP.SpecialPricesDataAreas.Delete()
+                                                    Next
+                                                End If
+
+                                                iContPrecios -= oRs.RecordCount
+
+                                                If iContPrecios > 0 Then
+                                                    oOSPP.SpecialPricesDataAreas.Add()
+                                                End If
+
+                                                oOSPP.SpecialPricesDataAreas.AutoUpdate = SAPbobsCOM.BoYesNoEnum.tNO
+                                                oOSPP.SpecialPricesDataAreas.PriceListNo = 0
+                                                oOSPP.SpecialPricesDataAreas.DateFrom = dInicioMesActual
+                                                oOSPP.SpecialPricesDataAreas.Dateto = dFinMesActual
+                                                oOSPP.SpecialPricesDataAreas.SpecialPrice = dPrecio
+
+                                                If oOSPP.Update() <> 0 Then
+                                                    Throw New Exception(oobjGlobal.compañia.GetLastErrorCode.ToString & " / " & oobjGlobal.compañia.GetLastErrorDescription.Replace("'", ""))
+                                                End If
                                             Else
-                                                oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - No se encuentra la Tarifa de compra. No se puede actualizar el artículo " & sItemCode & ". Revise la parametrización ""Tarifa_Compra"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                                oOSPP.Valid = SAPbobsCOM.BoYesNoEnum.tYES
+                                                oOSPP.ItemCode = sItemCode
+                                                oOSPP.CardCode = sCardCode
+                                                oOSPP.PriceListNum = 0 'CInt(sCodTarifa)
+
+                                                oOSPP.SpecialPricesDataAreas.AutoUpdate = SAPbobsCOM.BoYesNoEnum.tNO
+                                                oOSPP.SpecialPricesDataAreas.PriceListNo = 0
+                                                oOSPP.SpecialPricesDataAreas.DateFrom = dInicioMesActual
+                                                oOSPP.SpecialPricesDataAreas.Dateto = dFinMesActual
+                                                oOSPP.SpecialPricesDataAreas.SpecialPrice = dPrecio
+
+                                                If oOSPP.Add() <> 0 Then
+                                                    Throw New Exception(oobjGlobal.compañia.GetLastErrorCode.ToString & " / " & oobjGlobal.compañia.GetLastErrorDescription.Replace("'", ""))
+                                                End If
                                             End If
+                                            oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - Se ha actualizado en la Tarifa de compra el artículo " & sItemCode & ".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                            If oOSPP IsNot Nothing Then System.Runtime.InteropServices.Marshal.FinalReleaseComObject(oOSPP)
+                                            oOSPP = Nothing
+                                        Else
+                                            oobjGlobal.SBOApp.StatusBar.SetText("(EXO) - No se encuentra la Tarifa de compra. No se puede actualizar el artículo " & sItemCode & ". Revise la parametrización ""Tarifa_Compra"".", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                                         End If
                                     End If
-#End Region
-                                    Exit For
                                 End If
-                            Next
 #End Region
-                        Else
-                            oobjGlobal.SBOApp.StatusBar.SetText("No se ha podido Encontrar el índice en el documento Nº" & sDocNum & " y la línea """ & sLineNum & """ , revise los datos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                        End If
+                                Exit For
+                            End If
+                        Next
+#End Region
+
 #End Region
 
                     Else

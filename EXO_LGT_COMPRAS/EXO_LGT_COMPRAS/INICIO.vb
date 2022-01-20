@@ -75,6 +75,13 @@ Public Class INICIO
                 objGlobal.SBOApp.StatusBar.SetText("Se ha actualizado la propiedad 6 del artículo como ""Precio Provisional"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
             End If
 
+            sSQL = "UPDATE ""OITG"" SET ""ItmsGrpNam""='Buscar Precio Tarifa' WHERE ""ItmsTypCod""=7"
+            If objGlobal.refDi.SQL.executeNonQuery(sSQL) = False Then
+                objGlobal.SBOApp.StatusBar.SetText("No se ha podido actualizar la propiedad 7 del artículo como ""Buscar Precio Tarifa"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+            Else
+                objGlobal.SBOApp.StatusBar.SetText("Se ha actualizado la propiedad 7 del artículo como ""Buscar Precio Tarifa"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+            End If
+
             sSQL = "UPDATE ""OCQG"" SET ""GroupName""='Cerrar Albarán de Proveedor' WHERE ""GroupCode""=6"
             If objGlobal.refDi.SQL.executeNonQuery(sSQL) = False Then
                 objGlobal.SBOApp.StatusBar.SetText("No se ha podido actualizar la propiedad 6 del Interlocutor como ""Cerrar Albarán de Proveedor"" ", SAPbouiCOM.BoMessageTime.bmt_Medium, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
