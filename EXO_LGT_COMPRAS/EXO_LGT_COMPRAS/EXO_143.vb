@@ -377,7 +377,7 @@ Public Class EXO_143
 #End Region
 
             objGlobal.SBOApp.StatusBar.SetText("Fin del proceso.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-            objGlobal.SBOApp.MessageBox("Se ha leido correctamente el fichero. Fin del proceso")
+            'objGlobal.SBOApp.MessageBox("Se ha leido correctamente el fichero. Fin del proceso")
         Catch exCOM As System.Runtime.InteropServices.COMException
             Throw exCOM
         Catch ex As Exception
@@ -456,6 +456,7 @@ Public Class EXO_143
         Dim sCardCode As String = "" : Dim sItemCode As String = "" : Dim sCatalogo As String = ""
         Dim sRef As String = ""
         Dim sNomFich As String = "" : Dim sRutaFich As String = "" : Dim sLinea As String = ""
+        Dim sACTFRECUENCIA As String = "N"
 #End Region
         ControldeFrecuencia = False
 
@@ -469,117 +470,122 @@ Public Class EXO_143
             oRs.DoQuery(sSQL)
             For i = 0 To oRs.RecordCount - 1
                 sHomo = oRs.Fields.Item("U_EXO_HOMO").Value.ToString.Trim
-                If sHomo = "-" Then
-                    sMensaje = "El proveedor no tiene asignado una Homologación para calcular el control de frecuencias. Por favor, revise los datos."
-                    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                    objGlobal.SBOApp.MessageBox(sMensaje)
-                    Exit Function
-                Else
-                    sCardCode = oRs.Fields.Item("CardCode").Value.ToString.Trim
-                    sItemCode = oRs.Fields.Item("ItemCode").Value.ToString.Trim
-                    sCatalogo = oRs.Fields.Item("SubCatNum").Value.ToString.Trim
+                sSQL = "SELECT ""EXO_FREC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
+                sACTFRECUENCIA = objGlobal.refDi.SQL.sqlStringB1(sSQL)
+                If sACTFRECUENCIA = "Y" Then
+                    If sHomo = "-" Then
+                        sMensaje = "El proveedor no tiene asignado una Homologación para calcular el control de frecuencias. Por favor, revise los datos."
+                        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                        objGlobal.SBOApp.MessageBox(sMensaje)
+                        Exit Function
+                    Else
+                        sCardCode = oRs.Fields.Item("CardCode").Value.ToString.Trim
+                        sItemCode = oRs.Fields.Item("ItemCode").Value.ToString.Trim
+                        sCatalogo = oRs.Fields.Item("SubCatNum").Value.ToString.Trim
 #Region "Buscamos el valor de Referencia"
-                    Select Case sHomo
-                        Case "A" : sSQL = "SELECT ""U_EXO_REFA"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
-                        Case "B" : sSQL = "SELECT ""U_EXO_REFB"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
-                        Case "C" : sSQL = "SELECT ""U_EXO_REFC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
-                    End Select
-                    sRef = objGlobal.refDi.SQL.sqlStringB1(sSQL)
-                    If sRef.Trim = "" Then
                         Select Case sHomo
-                            Case "A" : sSQL = "SELECT TOP 1 ""U_EXO_REFA"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' "
-                            Case "B" : sSQL = "SELECT TOP 1 ""U_EXO_REFB"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' "
-                            Case "C" : sSQL = "SELECT TOP 1 ""U_EXO_REFC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' "
+                            Case "A" : sSQL = "SELECT ""U_EXO_REFA"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
+                            Case "B" : sSQL = "SELECT ""U_EXO_REFB"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
+                            Case "C" : sSQL = "SELECT ""U_EXO_REFC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
                         End Select
                         sRef = objGlobal.refDi.SQL.sqlStringB1(sSQL)
                         If sRef.Trim = "" Then
-                            sMensaje = "No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sCardCode & ", revise los datos para calcular el control de frecuencias."
+                            Select Case sHomo
+                                Case "A" : sSQL = "SELECT TOP 1 ""U_EXO_REFA"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' "
+                                Case "B" : sSQL = "SELECT TOP 1 ""U_EXO_REFB"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' "
+                                Case "C" : sSQL = "SELECT TOP 1 ""U_EXO_REFC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' "
+                            End Select
+                            sRef = objGlobal.refDi.SQL.sqlStringB1(sSQL)
+                            If sRef.Trim = "" Then
+                                sMensaje = "No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sCardCode & ", revise los datos para calcular el control de frecuencias."
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                objGlobal.SBOApp.MessageBox(sMensaje)
+                                Exit Function
+                            End If
+                        End If
+#End Region
+                        If sRef.Trim <> "" Then
+                            Dim iRef As Integer = CType(sRef, Integer)
+                            Dim iCuenta As Integer = 0
+                            Dim sPath As String = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_CTRL_REF")
+                            If IO.Directory.Exists(sPath) = False Then
+                                IO.Directory.CreateDirectory(sPath)
+                            End If
+
+                            oRsCuenta = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
+
+                            sSQL = "SELECT COUNT(*) FROM "
+                            sSQL &= " (SELECT DISTINCT C.""DocEntry"" FROM ""OPDN"" C "
+                            sSQL &= " INNER JOIN ""PDN1"" L ON C.""DocEntry"" =L.""DocEntry"" "
+                            sSQL &= " WHERE C.""DocEntry""<>" & sDocEntry & " And (C.""CardCode""='" & sCardCode & "' and L.""ItemCode""='" & sItemCode & "' "
+                            sSQL &= " And (L.""SubCatNum""='' or L.""SubCatNum""='" & sCatalogo & "') and L.""U_EXO_CRTLF""='N') ) "
+                            iCuenta = CType(objGlobal.refDi.SQL.sqlNumericaB1(sSQL), Integer)
+                            If iRef = iCuenta + 1 Then
+                                sMensaje = "Ref: " & sRef.ToString.Trim & " y existe(n) " & iCuenta.ToString.Trim & " recepciones. Se crea fichero y se guarda en el directorio " & sPath.ToString.Trim
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                'Guardamos CSV a la carpeta indicada
+#Region "Guardamos CSV a la carpeta indicada"
+                                sNomFich = "CNTRL_FR_RECEP_" & sCardCode & "_" & sItemCode & "_" & sCatalogo
+                                sRutaFich = Path.Combine(sPath & sNomFich & ".csv")
+                                If IO.File.Exists(sRutaFich) = False Then
+                                    IO.File.Delete(sRutaFich)
+                                End If
+                                FileOpen(1, sRutaFich, OpenMode.Output)
+                                sMensaje = "Generando fichero - " & sRutaFich
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                sLinea = sCardCode & ";" & sItemCode
+                                PrintLine(1, sLinea)
+                                FileClose(1)
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Fichero Creado...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+#End Region
+                                'Actualizamos las líneas de las recepciones
+#Region "Actualizamos línea de la recepción actual "
+                                sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y' "
+                                sSQL &= " WHERE ""DocEntry""=" & sDocEntry
+                                sSQL &= "  and ""LineNum""=" & oRs.Fields.Item("LineNum").Value.ToString.Trim
+                                If objGlobal.refDi.SQL.executeNonQuery(sSQL) = True Then
+                                    sMensaje = "Se ha actualizado la recepción con Nº Interno " & sDocEntry
+                                    sMensaje &= " y línea Nº" & oRs.Fields.Item("LineNum").ToString.Trim
+                                    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                Else
+                                    sMensaje = "No se ha podido actualizar la recepción con Nº Interno " & sDocEntry
+                                    sMensaje &= " y línea Nº" & oRs.Fields.Item("LineNum").ToString.Trim
+                                    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                End If
+#End Region
+#Region "Actualizamos las líneas de las recepciones"
+                                sSQL = "SELECT DISTINCT C.""DocEntry"", L.""LineNum"" "
+                                sSQL &= " FROM ""OPDN"" C "
+                                sSQL &= " INNER JOIN ""PDN1"" L ON C.""DocEntry"" =L.""DocEntry"" "
+                                sSQL &= " WHERE C.""DocEntry""<>" & sDocEntry & " And (C.""CardCode""='" & sCardCode & "' and L.""ItemCode""='" & sItemCode & "' "
+                                sSQL &= " And (L.""SubCatNum""='' or L.""SubCatNum""='" & sCatalogo & "') and L.""U_EXO_CRTLF""='N') "
+                                oRsCuenta.DoQuery(sSQL)
+                                For a = 0 To oRsCuenta.RecordCount - 1
+                                    sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y' "
+                                    sSQL &= " WHERE ""DocEntry""=" & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
+                                    sSQL &= "  and ""LineNum""=" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
+                                    If objGlobal.refDi.SQL.executeNonQuery(sSQL) = True Then
+                                        sMensaje = "Se ha actualizado la recepción con Nº Interno " & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
+                                        sMensaje &= " y línea Nº" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
+                                        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                    Else
+                                        sMensaje = "No se ha podido actualizar la recepción con Nº Interno " & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
+                                        sMensaje &= " y línea Nº" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
+                                        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    End If
+                                    oRsCuenta.MoveNext()
+                                Next
+#End Region
+                            End If
+                        Else
+                            sMensaje = "No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & ", revise los datos para calcular el control de frecuencias."
                             objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                             objGlobal.SBOApp.MessageBox(sMensaje)
                             Exit Function
                         End If
                     End If
-#End Region
-                    If sRef.Trim <> "" Then
-                        Dim iRef As Integer = CType(sRef, Integer)
-                        Dim iCuenta As Integer = 0
-                        Dim sPath As String = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_CTRL_REF")
-                        If IO.Directory.Exists(sPath) = False Then
-                            IO.Directory.CreateDirectory(sPath)
-                        End If
-
-                        oRsCuenta = CType(objGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
-
-                        sSQL = "SELECT COUNT(*) FROM "
-                        sSQL &= " (SELECT DISTINCT C.""DocEntry"" FROM ""OPDN"" C "
-                        sSQL &= " INNER JOIN ""PDN1"" L ON C.""DocEntry"" =L.""DocEntry"" "
-                        sSQL &= " WHERE C.""DocEntry""<>" & sDocEntry & " And (C.""CardCode""='" & sCardCode & "' and L.""ItemCode""='" & sItemCode & "' "
-                        sSQL &= " And (L.""SubCatNum""='' or L.""SubCatNum""='" & sCatalogo & "') and L.""U_EXO_CRTLF""='N') ) "
-                        iCuenta = CType(objGlobal.refDi.SQL.sqlNumericaB1(sSQL), Integer)
-                        If iRef = iCuenta + 1 Then
-                            sMensaje = "Ref: " & sRef.ToString.Trim & " y existe(n) " & iCuenta.ToString.Trim & " recepciones. Se crea fichero y se guarda en el directorio " & sPath.ToString.Trim
-                            objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                            'Guardamos CSV a la carpeta indicada
-#Region "Guardamos CSV a la carpeta indicada"
-                            sNomFich = "CNTRL_FR_RECEP_" & sCardCode & "_" & sItemCode & "_" & sCatalogo
-                            sRutaFich = Path.Combine(sPath & sNomFich & ".csv")
-                            If IO.File.Exists(sRutaFich) = False Then
-                                IO.File.Delete(sRutaFich)
-                            End If
-                            FileOpen(1, sRutaFich, OpenMode.Output)
-                            sMensaje = "Generando fichero - " & sRutaFich
-                            objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                            sLinea = sCardCode & ";" & sItemCode
-                            PrintLine(1, sLinea)
-                            FileClose(1)
-                            objGlobal.SBOApp.StatusBar.SetText("(EXO) - Fichero Creado...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
-#End Region
-                            'Actualizamos las líneas de las recepciones
-#Region "Actualizamos línea de la recepción actual "
-                            sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y' "
-                            sSQL &= " WHERE ""DocEntry""=" & sDocEntry
-                            sSQL &= "  and ""LineNum""=" & oRs.Fields.Item("LineNum").Value.ToString.Trim
-                            If objGlobal.refDi.SQL.executeNonQuery(sSQL) = True Then
-                                sMensaje = "Se ha actualizado la recepción con Nº Interno " & sDocEntry
-                                sMensaje &= " y línea Nº" & oRs.Fields.Item("LineNum").ToString.Trim
-                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                            Else
-                                sMensaje = "No se ha podido actualizar la recepción con Nº Interno " & sDocEntry
-                                sMensaje &= " y línea Nº" & oRs.Fields.Item("LineNum").ToString.Trim
-                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                            End If
-#End Region
-#Region "Actualizamos las líneas de las recepciones"
-                            sSQL = "SELECT DISTINCT C.""DocEntry"", L.""LineNum"" "
-                            sSQL &= " FROM ""OPDN"" C "
-                            sSQL &= " INNER JOIN ""PDN1"" L ON C.""DocEntry"" =L.""DocEntry"" "
-                            sSQL &= " WHERE C.""DocEntry""<>" & sDocEntry & " And (C.""CardCode""='" & sCardCode & "' and L.""ItemCode""='" & sItemCode & "' "
-                            sSQL &= " And (L.""SubCatNum""='' or L.""SubCatNum""='" & sCatalogo & "') and L.""U_EXO_CRTLF""='N') "
-                            oRsCuenta.DoQuery(sSQL)
-                            For a = 0 To oRsCuenta.RecordCount - 1
-                                sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y' "
-                                sSQL &= " WHERE ""DocEntry""=" & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
-                                sSQL &= "  and ""LineNum""=" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
-                                If objGlobal.refDi.SQL.executeNonQuery(sSQL) = True Then
-                                    sMensaje = "Se ha actualizado la recepción con Nº Interno " & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
-                                    sMensaje &= " y línea Nº" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
-                                    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
-                                Else
-                                    sMensaje = "No se ha podido actualizar la recepción con Nº Interno " & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
-                                    sMensaje &= " y línea Nº" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
-                                    objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                                End If
-                                oRsCuenta.MoveNext()
-                            Next
-#End Region
-                        End If
-                    Else
-                        sMensaje = "No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & ", revise los datos para calcular el control de frecuencias."
-                        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
-                        objGlobal.SBOApp.MessageBox(sMensaje)
-                        Exit Function
-                    End If
                 End If
+
                 oRs.MoveNext()
             Next
             ControldeFrecuencia = True
