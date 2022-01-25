@@ -470,7 +470,13 @@ Public Class EXO_143
             oRs.DoQuery(sSQL)
             For i = 0 To oRs.RecordCount - 1
                 sHomo = oRs.Fields.Item("U_EXO_HOMO").Value.ToString.Trim
-                sSQL = "SELECT ""EXO_FREC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
+                sCardCode = oRs.Fields.Item("CardCode").Value.ToString.Trim
+                sItemCode = oRs.Fields.Item("ItemCode").Value.ToString.Trim
+                sCatalogo = oRs.Fields.Item("SubCatNum").Value.ToString.Trim
+
+                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Homo: " & sHomo & " - IC: " & sCardCode & " - Art: " & sItemCode & " - Cat: " & sCatalogo, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+
+                sSQL = "SELECT ""U_EXO_FREC"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
                 sACTFRECUENCIA = objGlobal.refDi.SQL.sqlStringB1(sSQL)
                 If sACTFRECUENCIA = "Y" Then
                     If sHomo = "-" Then
@@ -479,9 +485,7 @@ Public Class EXO_143
                         objGlobal.SBOApp.MessageBox(sMensaje)
                         Exit Function
                     Else
-                        sCardCode = oRs.Fields.Item("CardCode").Value.ToString.Trim
-                        sItemCode = oRs.Fields.Item("ItemCode").Value.ToString.Trim
-                        sCatalogo = oRs.Fields.Item("SubCatNum").Value.ToString.Trim
+
 #Region "Buscamos el valor de Referencia"
                         Select Case sHomo
                             Case "A" : sSQL = "SELECT ""U_EXO_REFA"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
@@ -507,7 +511,9 @@ Public Class EXO_143
                         If sRef.Trim <> "" Then
                             Dim iRef As Integer = CType(sRef, Integer)
                             Dim iCuenta As Integer = 0
+
                             Dim sPath As String = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_CTRL_REF")
+                            objGlobal.SBOApp.StatusBar.SetText("(EXO) - Creando Documento de frecuencia en " & sPath, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
                             If IO.Directory.Exists(sPath) = False Then
                                 IO.Directory.CreateDirectory(sPath)
                             End If
@@ -576,6 +582,8 @@ Public Class EXO_143
                                     oRsCuenta.MoveNext()
                                 Next
 #End Region
+                            Else
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - No se encuentra datos para generar el fichero.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
                             End If
                         Else
                             sMensaje = "No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & ", revise los datos para calcular el control de frecuencias."
@@ -585,7 +593,6 @@ Public Class EXO_143
                         End If
                     End If
                 End If
-
                 oRs.MoveNext()
             Next
             ControldeFrecuencia = True
