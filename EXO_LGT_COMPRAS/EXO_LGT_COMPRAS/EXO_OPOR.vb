@@ -357,7 +357,12 @@ Public Class EXO_OPOR
                 Case Else : correo.DeliveryNotificationOptions = Net.Mail.DeliveryNotificationOptions.Never
             End Select
 
-            correo.To.Add(sMailProveedor)
+            Dim sMailProv As String() = Nothing
+            sMailProv = sMailProveedor.Split(CType(";", Char()))
+            For Each item As String In sMailProv
+                correo.To.Add(item)
+            Next
+
 
             Dim smtp As New System.Net.Mail.SmtpClient
 

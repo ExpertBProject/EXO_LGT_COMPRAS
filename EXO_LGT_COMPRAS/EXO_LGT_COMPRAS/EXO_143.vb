@@ -526,7 +526,7 @@ Public Class EXO_143
                             sSQL &= " WHERE C.""DocEntry""<>" & sDocEntry & " And (C.""CardCode""='" & sCardCode & "' and L.""ItemCode""='" & sItemCode & "' "
                             sSQL &= " And (L.""SubCatNum""='' or L.""SubCatNum""='" & sCatalogo & "') and L.""U_EXO_CRTLF""='N') ) "
                             iCuenta = CType(objGlobal.refDi.SQL.sqlNumericaB1(sSQL), Integer)
-                            If iRef = iCuenta + 1 Then
+                            If (iRef <= iCuenta + 1) Then
                                 sMensaje = "Ref: " & sRef.ToString.Trim & " y existe(n) " & iCuenta.ToString.Trim & " recepciones. Se crea fichero y se guarda en el directorio " & sPath.ToString.Trim
                                 objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
                                 'Guardamos CSV a la carpeta indicada
