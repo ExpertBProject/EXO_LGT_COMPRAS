@@ -343,6 +343,7 @@ Public Class EXO_HOMO
                             End If
                         End If
                         iDiasDif = DateDiff(DateInterval.Day, dFechaLin, dFecha)
+                        oobjGlobal.SBOApp.StatusBar.SetText("Dif. Días F. Contable con U_EXO_FECHAPEDIDO: " & iDiasDif.ToString, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
                         If iDiasDif = -1 Or iDiasDif = 2 Then
                             iD3Log += 1
                         ElseIf iDiasDif = -2 Or iDiasDif = 3 Then
@@ -360,6 +361,7 @@ Public Class EXO_HOMO
                     ElseIf iRecep > 30 Then
                         X = 3
                     End If
+                    oobjGlobal.SBOApp.StatusBar.SetText("Recepciones: " & iRecep.ToString, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
                     IL = (1 - (3 * iD3Log + 5 * iD15Log + 45 * iD45Log + 200 * iD200Log) / (iRecep * X)) * PESOL
                     IC = (1 - (3 * iD3Cal + 5 * iD15Cal + 45 * iD45Cal + 200 * iD200Cal) / (iRecep * X)) * PESOC
                     If IC = 0 Then
@@ -370,6 +372,7 @@ Public Class EXO_HOMO
                     End If
 
                     TOTAL = IL + IC
+                    oobjGlobal.SBOApp.StatusBar.SetText("IL:  " & IL & " - IC: " & IC & " - TOTAL: " & TOTAL, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
                 End If
             Next
 #Region "Grabamos Homologación"
