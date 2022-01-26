@@ -333,7 +333,7 @@ Public Class EXO_HOMO
                             Case "200" : iD200Cal += 1
                         End Select
                         Dim dFecha As Date = CDate(oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString)
-                        Dim sFechaLin As String = oRsLin.Fields.Item("U_EXO_FECHAPEDIDO").Value.ToString
+                        Dim sFechaLin As String = oRsLin.Fields.Item("U_EXO_FECHAENTPROV").Value.ToString
                         Dim dFechaLin As Date = CDate(oForm.DataSources.DataTables.Item(sData).GetValue("Fecha Contable", i).ToString)
                         Dim iDiasDif As Long = 0
                         If sFechaLin <> "" Then
@@ -343,7 +343,7 @@ Public Class EXO_HOMO
                             End If
                         End If
                         iDiasDif = DateDiff(DateInterval.Day, dFechaLin, dFecha)
-                        oobjGlobal.SBOApp.StatusBar.SetText("Dif. Días F. Contable con U_EXO_FECHAPEDIDO: " & iDiasDif.ToString, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+                        oobjGlobal.SBOApp.StatusBar.SetText("Dif. Días F. Contable con U_EXO_FECHAENTPROV: " & iDiasDif.ToString, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
                         If iDiasDif = -1 Or iDiasDif = 2 Then
                             iD3Log += 1
                         ElseIf iDiasDif = -2 Or iDiasDif = 3 Then

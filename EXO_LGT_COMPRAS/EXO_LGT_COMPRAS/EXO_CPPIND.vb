@@ -435,18 +435,34 @@ Public Class EXO_CPPIND
 #Region "Buscamos el precio de la Tarifa"
                             Dim oRsPrecio As SAPbobsCOM.Recordset = CType(oobjGlobal.compañia.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset), SAPbobsCOM.Recordset)
                             Dim Buscar_Precio As String = ""
-                            sSQL = "select t0.""ItemCode"",t0.""ItemName"",T0.""UserText"",COALESCE(t0.""SHeight1"",0) ""SHeight1"", " +
-                                        " COALESCE(T0.""SLength1"",0) ""SLength1"" ,COALESCE(T0.""SWidth1"",0) ""SWidth1"", " +
-                                        " COALESCE(T0.""SWeight1"",0) ""SWeight1"",  " +
-                                        " Case when coalesce(t3.""Price"",0)>0 then (100-t3.""Discount"")*t1.""Price""/100 When coalesce(t2.""Price"",0) >0 Then (100-t2.""Discount"")*t1.""Price""/100 Else t1.""Price"" End As Price, coalesce(A3.""Rate"",0) As IVA " +
-                                        " ,t1.""Price"" as PrecioOriginal, case when coalesce(t3.""Discount"",0)>0 then t3.""Discount"" when coalesce(t2.""Discount"",0)>0 then t2.""Discount"" else 0 end as Discount, " +
-                                        " case when t0.""UgpEntry""=-1 then 'N' ELSE 'Y' END AS Divisible"
-                            sSQL &= " from ""OITM"" t0  inner join ""ITM1"" t1  On t0.""ItemCode""=t1.""ItemCode"" And coalesce(t0.""frozenFor"",'N')='N' and t1.""PriceList""= (select ""ListNum"" from ""OCRD"" where ""CardCode""='" + sCardCode + "') " +
-                                        " left join ""OSPP"" t2 on t1.""ItemCode""=t2.""ItemCode"" and t2.""CardCode""='" & sCardCode & "' " +
-                                        " LEFT join ""OVTG"" A3  on t0.""VatGourpSa""=A3.""Code"" " +
-                                        "LEFT JOIN ""SPP1"" t3  on t3.""ItemCode""=t2.""ItemCode"" and t2.""CardCode""=t3.""CardCode"" and t3.""FromDate""<='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "' " +
-                                        " And ifnull(T3.""ToDate"",'20991231')>='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "'  "
-                            sSQL &= " where  (t0.""ItemCode"" like '%" & sItemCode & "%' )"
+                            'sSQL = "select t0.""ItemCode"",t0.""ItemName"",T0.""UserText"",COALESCE(t0.""SHeight1"",0) ""SHeight1"", " +
+                            '            " COALESCE(T0.""SLength1"",0) ""SLength1"" ,COALESCE(T0.""SWidth1"",0) ""SWidth1"", " +
+                            '            " COALESCE(T0.""SWeight1"",0) ""SWeight1"",  " +
+                            '            " Case when coalesce(t3.""Price"",0)>0 then (100-t3.""Discount"")*t1.""Price""/100 When coalesce(t2.""Price"",0) >0 Then (100-t2.""Discount"")*t1.""Price""/100 Else t1.""Price"" End As Price, coalesce(A3.""Rate"",0) As IVA " +
+                            '            " ,t1.""Price"" as PrecioOriginal, case when coalesce(t3.""Discount"",0)>0 then t3.""Discount"" when coalesce(t2.""Discount"",0)>0 then t2.""Discount"" else 0 end as Discount, " +
+                            '            " case when t0.""UgpEntry""=-1 then 'N' ELSE 'Y' END AS Divisible"
+                            'sSQL &= " from ""OITM"" t0  inner join ""ITM1"" t1  On t0.""ItemCode""=t1.""ItemCode"" And coalesce(t0.""frozenFor"",'N')='N' and t1.""PriceList""= (select ""ListNum"" from ""OCRD"" where ""CardCode""='" + sCardCode + "') " +
+                            '            " left join ""OSPP"" t2 on t1.""ItemCode""=t2.""ItemCode"" and t2.""CardCode""='" & sCardCode & "' " +
+                            '            " LEFT join ""OVTG"" A3  on t0.""VatGourpSa""=A3.""Code"" " +
+                            '            "LEFT JOIN ""SPP1"" t3  on t3.""ItemCode""=t2.""ItemCode"" and t2.""CardCode""=t3.""CardCode"" and t3.""FromDate""<='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "' " +
+                            '            " And ifnull(T3.""ToDate"",'20991231')>='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "'  "
+                            'sSQL &= " where  (t0.""ItemCode"" like '%" & sItemCode & "%' )"
+                            sSQL = "SELECT top 1 ""Price"" from "
+                            sSQL &= " (SELECT t1.""Price"", 1 as orden  "
+                            sSQL &= " From OSPP T0  inner JOIN SPP1 T1 ON T0.""CardCode"" = T1.""CardCode"" and t0.""ItemCode"" = t1.""ItemCode""  "
+                            sSQL &= " WHERE  T1.""CardCode"" = '" & sCardCode & "' and t1.""ItemCode"" ='" & sItemCode & "' "
+                            sSQL &= " And t1.""FromDate"" <='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "' "
+                            sSQL &= " And ifnull(t1.""ToDate"", '29991231') >='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "'  "
+                            sSQL &= " union all "
+                            sSQL &= "Select t1.""Price"", 2 as orden "
+                            sSQL &= " From OSPP T0  inner JOIN SPP1 T1 ON T0.""CardCode"" = T1.""CardCode"" and t0.""ItemCode"" = t1.""ItemCode"" "
+                            sSQL &= " WHERE  T1.""CardCode"" = '*10' and t1.""ItemCode"" ='" & sItemCode & "' "
+                            sSQL &= " And t1.""FromDate""<='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "' "
+                            sSQL &= " And ifnull(t1.""ToDate"",'20991231')>='" & dFecha.Year.ToString("0000") & dFecha.Month.ToString("00") & dFecha.Day.ToString("00") & "'  "
+                            sSQL &= " union all "
+                            sSQL &= " Select t1.""Price"", 3 as orden "
+                            sSQL &= " From itm1 t1 where t1.""ItemCode"" = '" & sItemCode & "' and t1.""PriceList"" = (select ""ListNum"" from ""OCRD"" where ""CardCode""='" + sCardCode + "')) tp "
+                            sSQL &= " order by orden "
                             oRsPrecio.DoQuery(sSQL)
                             If oRsPrecio.RecordCount > 0 Then
                                 Buscar_Precio = oRsPrecio.Fields.Item("Price").Value.ToString
