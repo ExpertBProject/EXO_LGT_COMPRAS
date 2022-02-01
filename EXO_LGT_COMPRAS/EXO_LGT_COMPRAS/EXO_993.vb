@@ -202,7 +202,7 @@ Public Class EXO_993
 
                 If oForm.Mode = BoFormMode.fm_OK_MODE Then
                     'Si no existe, creamos el artículo
-                    sSQL = "SELECT ""Code"" FROM ""@EXO_SUPLEMENTO"" WHERE ""Code""='" & sArticulo & "_" & sCardCode & "' "
+                    sSQL = "SELECT ""Code"" FROM ""@EXO_SUPLEMENTO"" WHERE ""Code""='" & sArticulo & "_" & sCardCode & "_" & sCatalogo & "' "
                     sExiste = objGlobal.refDi.SQL.sqlStringB1(sSQL)
                     If sExiste = "" Then
                         'Presentamos UDO Y escribimos los datos de la cabecera
@@ -216,7 +216,7 @@ Public Class EXO_993
                         INICIO._sCardCode = ""
                         INICIO._sCatalogo = ""
                         INICIO._sLineaSel = ""
-                        objGlobal.funcionesUI.cargaFormUdoBD_Clave("EXO_SUPLEMENTO", sArticulo & "_" & sCardCode)
+                        objGlobal.funcionesUI.cargaFormUdoBD_Clave("EXO_SUPLEMENTO", sArticulo & "_" & sCardCode & "_" & sCatalogo)
                     End If
                 Else
                     objGlobal.SBOApp.StatusBar.SetText("(EXO) - Por favor, guarde primero los datos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)

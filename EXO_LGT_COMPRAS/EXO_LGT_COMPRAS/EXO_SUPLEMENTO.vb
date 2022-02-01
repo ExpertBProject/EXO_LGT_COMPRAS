@@ -128,7 +128,7 @@ Public Class EXO_SUPLEMENTO
 
                 If INICIO._sArticulo <> "" Then
                     oForm.Mode = BoFormMode.fm_ADD_MODE
-                    oForm.DataSources.DBDataSources.Item("@EXO_SUPLEMENTO").SetValue("Code", 0, INICIO._sArticulo & "_" & INICIO._sCardCode)
+                    oForm.DataSources.DBDataSources.Item("@EXO_SUPLEMENTO").SetValue("Code", 0, INICIO._sArticulo & "_" & INICIO._sCardCode & "_" & INICIO._sCatalogo)
                     oForm.DataSources.DBDataSources.Item("@EXO_SUPLEMENTO").SetValue("U_EXO_ART", 0, INICIO._sArticulo)
                     oForm.DataSources.DBDataSources.Item("@EXO_SUPLEMENTO").SetValue("U_EXO_IC", 0, INICIO._sCardCode)
                     oForm.DataSources.DBDataSources.Item("@EXO_SUPLEMENTO").SetValue("U_EXO_CAT", 0, INICIO._sCatalogo)
@@ -241,7 +241,7 @@ Public Class EXO_SUPLEMENTO
 
             If pVal.ItemUID = "1" Then
                 If pVal.ActionSuccess = True Then
-                    sCode = INICIO._sArticulo & "_" & INICIO._sCardCode
+                    sCode = INICIO._sArticulo & "_" & INICIO._sCardCode & "_" & INICIO._sCatalogo
                     If oForm.Mode = BoFormMode.fm_ADD_MODE Then
                         If oForm.TypeEx = "UDO_FT_EXO_SUPLEMENTO" And oForm.Visible = True Then
                             oForm.Close()
