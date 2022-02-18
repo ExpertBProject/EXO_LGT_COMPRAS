@@ -582,6 +582,38 @@ Public Class EXO_143
                                     oRsCuenta.MoveNext()
                                 Next
 #End Region
+#Region "Imprimir layout"
+                                Dim oCmpSrv As SAPbobsCOM.CompanyService = objGlobal.compañia.GetCompanyService()
+                                Dim oReportLayoutService As SAPbobsCOM.ReportLayoutsService = CType(oCmpSrv.GetBusinessService(SAPbobsCOM.ServiceTypes.ReportLayoutsService), SAPbobsCOM.ReportLayoutsService)
+                                Dim oPrintParam As SAPbobsCOM.ReportLayoutPrintParams = CType(oReportLayoutService.GetDataInterface(SAPbobsCOM.ReportLayoutsServiceDataInterfaces.rlsdiReportLayoutPrintParams), SAPbobsCOM.ReportLayoutPrintParams)
+
+                                oPrintParam.LayoutCode = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_PESOS") 'codigo del formato importado en SAP
+                                oPrintParam.DocEntry = CType(sDocEntry, Integer) 'parametro que se envia al crystal, DocEntry de la transaccion
+                                oReportLayoutService.Print(oPrintParam)
+#End Region
+#Region "Actualizamos las líneas de las recepciones"
+                                sSQL = "SELECT DISTINCT C.""DocEntry"", L.""LineNum"" "
+                                sSQL &= " FROM ""OPDN"" C "
+                                sSQL &= " INNER JOIN ""PDN1"" L ON C.""DocEntry"" =L.""DocEntry"" "
+                                sSQL &= " WHERE C.""DocEntry""<>" & sDocEntry & " And (C.""CardCode""='" & sCardCode & "' and L.""ItemCode""='" & sItemCode & "' "
+                                sSQL &= " And (L.""SubCatNum""='' or L.""SubCatNum""='" & sCatalogo & "') and L.""U_EXO_CRTLF""='N') "
+                                oRsCuenta.DoQuery(sSQL)
+                                For a = 0 To oRsCuenta.RecordCount - 1
+                                    sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y' "
+                                    sSQL &= " WHERE ""DocEntry""=" & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
+                                    sSQL &= "  and ""LineNum""=" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
+                                    If objGlobal.refDi.SQL.executeNonQuery(sSQL) = True Then
+                                        sMensaje = "Se ha actualizado la recepción con Nº Interno " & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
+                                        sMensaje &= " y línea Nº" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
+                                        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                    Else
+                                        sMensaje = "No se ha podido actualizar la recepción con Nº Interno " & oRsCuenta.Fields.Item("DocEntry").Value.ToString.Trim
+                                        sMensaje &= " y línea Nº" & oRsCuenta.Fields.Item("LineNum").Value.ToString.Trim
+                                        objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
+                                    End If
+                                    oRsCuenta.MoveNext()
+                                Next
+#End Region
                             Else
                                 objGlobal.SBOApp.StatusBar.SetText("(EXO) - No se encuentra datos para generar el fichero.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
                             End If

@@ -402,6 +402,14 @@ Public Class EXO_CPPIND
                                 oobjGlobal.SBOApp.StatusBar.SetText("No se encuentra el catálogo para el artículo " & sItemCode & " y el proveedor " & sItemCode & ", revise los datos.", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error)
                             End If
                         End If
+#Region "Buscamos si en el catálogo tiene Actualizar con Tarifa"
+                        Dim sActTarifa As String = ""
+                        sSQL = "SELECT ""U_EXO_ACTTARIFA"" FROM ""OSCN"" WHERE ""CardCode""='" & sCardCode & "' and ""ItemCode""='" & sItemCode & "' and ""Substitute""='" & sCatalogo & "'"
+                        sActTarifa = oobjGlobal.refDi.SQL.sqlStringB1(sSQL)
+                        If sActTarifa = "Y" Then
+                            sBuscarPrecioTarifa = sActTarifa
+                        End If
+#End Region
                         If sBuscarPrecioTarifa = "N" Then
                             If sIndice.Trim <> "" Then
                                 dFecha = CDate(sFecha)
