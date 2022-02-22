@@ -587,7 +587,7 @@ Public Class EXO_143
                                 Dim oReportLayoutService As SAPbobsCOM.ReportLayoutsService = CType(oCmpSrv.GetBusinessService(SAPbobsCOM.ServiceTypes.ReportLayoutsService), SAPbobsCOM.ReportLayoutsService)
                                 Dim oPrintParam As SAPbobsCOM.ReportLayoutPrintParams = CType(oReportLayoutService.GetDataInterface(SAPbobsCOM.ReportLayoutsServiceDataInterfaces.rlsdiReportLayoutPrintParams), SAPbobsCOM.ReportLayoutPrintParams)
 
-                                oPrintParam.LayoutCode = objGlobal.funcionesUI.refDi.OGEN.valorVariable("DIR_PESOS") 'codigo del formato importado en SAP
+                                oPrintParam.LayoutCode = objGlobal.funcionesUI.refDi.OGEN.valorVariable("Layout_Frecuencia") 'codigo del formato importado en SAP
                                 oPrintParam.DocEntry = CType(sDocEntry, Integer) 'parametro que se envia al crystal, DocEntry de la transaccion
                                 oReportLayoutService.Print(oPrintParam)
 #End Region
