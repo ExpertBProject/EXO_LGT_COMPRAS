@@ -282,6 +282,9 @@ Public Class INICIO
                     Case "EXO_MNPESOS"
                         Clase = New EXO_143(objGlobal)
                         Return CType(Clase, EXO_143).SBOApp_MenuEvent(infoEvento)
+                    Case "EXO_MNEXCEL"
+                        Clase = New EXO_143(objGlobal)
+                        Return CType(Clase, EXO_143).SBOApp_MenuEvent(infoEvento)
                 End Select
             End If
 

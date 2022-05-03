@@ -64,7 +64,9 @@ Public Class EXO_143
                         Case "143"
                             Select Case infoEvento.EventType
                                 Case SAPbouiCOM.BoEventTypes.et_FORM_LOAD
-
+                                    'If EventHandler_Form_Load(infoEvento) = False Then
+                                    '    Return False
+                                    'End If
                                 Case SAPbouiCOM.BoEventTypes.et_CHOOSE_FROM_LIST
 
                                 Case SAPbouiCOM.BoEventTypes.et_GOT_FOCUS
@@ -146,28 +148,31 @@ Public Class EXO_143
                         If objGlobal.SBOApp.Menus.Exists("EXO_MNPESOS") Then
                             objGlobal.SBOApp.Menus.RemoveEx("EXO_MNPESOS")
                         End If
+                        If objGlobal.SBOApp.Menus.Exists("EXO_MNEXC") Then
+                            objGlobal.SBOApp.Menus.RemoveEx("EXO_MNEXC")
+                        End If
                 End Select
             Else
                 Select Case oForm.TypeEx
                     Case "143"
                         'If oForm.Mode = SAPbouiCOM.BoFormMode.fm_OK_MODE Then
                         If infoEvento.ItemUID = "38" Then
-                                If infoEvento.Row > 0 Then
-                                    _iLineNumRightClick = infoEvento.Row
-                                End If
-                                oCreationPackage = CType(objGlobal.SBOApp.CreateObject(SAPbouiCOM.BoCreatableObjectType.cot_MenuCreationParams), SAPbouiCOM.MenuCreationParams)
-                                Dim oMenuItem As SAPbouiCOM.MenuItem = objGlobal.SBOApp.Menus.Item("1280") 'Data'
-                                Dim oMenus As SAPbouiCOM.Menus = oMenuItem.SubMenus
-                                If Not objGlobal.SBOApp.Menus.Exists("EXO_mnsep") Then
-                                    oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_SEPERATOR
-                                    oCreationPackage.Position = oMenuItem.SubMenus.Count + 1
-                                    oCreationPackage.UniqueID = "EXO_mnsep"
-                                    oCreationPackage.Enabled = True
-                                    oMenus = oMenuItem.SubMenus
-                                    oMenus.AddEx(oCreationPackage)
-                                End If
+                            If infoEvento.Row > 0 Then
+                                _iLineNumRightClick = infoEvento.Row
+                            End If
+                            oCreationPackage = CType(objGlobal.SBOApp.CreateObject(SAPbouiCOM.BoCreatableObjectType.cot_MenuCreationParams), SAPbouiCOM.MenuCreationParams)
+                            Dim oMenuItem As SAPbouiCOM.MenuItem = objGlobal.SBOApp.Menus.Item("1280") 'Data'
+                            Dim oMenus As SAPbouiCOM.Menus = oMenuItem.SubMenus
+                            If Not objGlobal.SBOApp.Menus.Exists("EXO_mnsep") Then
+                                oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_SEPERATOR
+                                oCreationPackage.Position = oMenuItem.SubMenus.Count + 1
+                                oCreationPackage.UniqueID = "EXO_mnsep"
+                                oCreationPackage.Enabled = True
+                                oMenus = oMenuItem.SubMenus
+                                oMenus.AddEx(oCreationPackage)
+                            End If
 
-                                If Not objGlobal.SBOApp.Menus.Exists("EXO_MNPESOE") Then
+                            If Not objGlobal.SBOApp.Menus.Exists("EXO_MNPESOE") Then
                                     oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING
                                     oCreationPackage.Position = oMenuItem.SubMenus.Count + 1
                                     oCreationPackage.UniqueID = "EXO_MNPESOE"
@@ -177,15 +182,24 @@ Public Class EXO_143
                                     oMenus.AddEx(oCreationPackage)
                                 End If
 
-                                If Not objGlobal.SBOApp.Menus.Exists("EXO_MNPESOS") Then
-                                    oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING
-                                    oCreationPackage.Position = oMenuItem.SubMenus.Count + 1
-                                    oCreationPackage.UniqueID = "EXO_MNPESOS"
-                                    oCreationPackage.String = "Peso de Salida"
-                                    oCreationPackage.Enabled = True
-                                    oMenus.AddEx(oCreationPackage)
-                                End If
+                            If Not objGlobal.SBOApp.Menus.Exists("EXO_MNPESOS") Then
+                                oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING
+                                oCreationPackage.Position = oMenuItem.SubMenus.Count + 1
+                                oCreationPackage.UniqueID = "EXO_MNPESOS"
+                                oCreationPackage.String = "Peso de Salida"
+                                oCreationPackage.Enabled = True
+                                oMenus.AddEx(oCreationPackage)
                             End If
+                            If Not objGlobal.SBOApp.Menus.Exists("EXO_MNEXCEL") Then
+                                oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING
+                                oCreationPackage.Position = oMenuItem.SubMenus.Count + 1
+                                oCreationPackage.UniqueID = "EXO_MNEXCEL"
+                                oCreationPackage.String = "Abrir Fichero Excel"
+                                oCreationPackage.Enabled = True
+                                oMenus = oMenuItem.SubMenus
+                                oMenus.AddEx(oCreationPackage)
+                            End If
+                        End If
                         ' End If
                 End Select
             End If
@@ -206,6 +220,8 @@ Public Class EXO_143
         Dim oForm As SAPbouiCOM.Form = Nothing
         Dim sSQL As String = ""
         Dim sMensaje As String = ""
+        Dim sRuta As String = ""
+
         Try
             oForm = objGlobal.SBOApp.Forms.ActiveForm
             If infoEvento.BeforeAction = True Then
@@ -224,6 +240,24 @@ Public Class EXO_143
                     Case "EXO_MNPESOS"
                         If _iLineNumRightClick > 0 Then
                             LeerFichero("PS", oForm)
+                        Else
+                            sMensaje = "Tiene que seleccionar una línea."
+                            objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                            objGlobal.SBOApp.MessageBox(sMensaje)
+                        End If
+                    Case "EXO_MNEXCEL"
+                        If _iLineNumRightClick > 0 Then
+
+                            sRuta = CType(CType(oForm.Items.Item("38").Specific, SAPbouiCOM.Matrix).Columns.Item("U_EXO_RUTACSV").Cells.Item(_iLineNumRightClick).Specific, SAPbouiCOM.EditText).Value
+                            If sRuta <> "" And File.Exists(sRuta) Then
+
+                                Process.Start(sRuta)
+                            Else
+                                sMensaje = "No existe ruta de excel para esa línea"
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                objGlobal.SBOApp.MessageBox(sMensaje)
+                            End If
+
                         Else
                             sMensaje = "Tiene que seleccionar una línea."
                             objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
@@ -446,6 +480,61 @@ Public Class EXO_143
             EXO_CleanCOM.CLiberaCOM.Form(oForm)
         End Try
     End Function
+    '    Private Function EventHandler_Form_Load(ByVal pVal As ItemEvent) As Boolean
+    '        Dim oForm As SAPbouiCOM.Form = Nothing
+
+
+    '        EventHandler_Form_Load = False
+
+    '        Try
+    '            'Recuperar el formulario
+    '            oForm = objGlobal.SBOApp.Forms.Item(pVal.FormUID)
+    '            oForm.Visible = False
+
+    '            'Buscar XML de update
+    '            objGlobal.SBOApp.StatusBar.SetText("Presentando información...Espere por favor", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+
+    '#Region "Botones"
+    '            Dim oMatrix As SAPbouiCOM.Matrix
+
+    '            Dim ocolumns As SAPbouiCOM.Columns
+
+    '            Dim ocolumn As SAPbouiCOM.Column
+
+    '            oMatrix = CType(oForm.Items.Item("38").Specific, Matrix)
+
+    '            ocolumns = oMatrix.Columns
+    '            ocolumn = ocolumns.Add("Lanzada", BoFormItemTypes.it_LINKED_BUTTON)
+
+
+    '            'oItem = oForm.Items.Add("btnSUP", SAPbouiCOM.BoFormItemTypes.it_BUTTON)
+    '            'oItem.Left = oForm.Items.Item("2").Left + oForm.Items.Item("2").Width + 5
+    '            'oItem.Width = oForm.Items.Item("2").Width * 2
+    '            'oItem.Top = oForm.Items.Item("2").Top
+    '            'oItem.Height = oForm.Items.Item("2").Height
+    '            'oItem.Enabled = False
+    '            'Dim oBtnAct As SAPbouiCOM.Button
+    '            'oBtnAct = CType(oItem.Specific, Button)
+    '            'oBtnAct.Caption = "Suplemento"
+    '            'oItem.TextStyle = 1
+    '            'oItem.LinkTo = "2"
+    '            'oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Find, SAPbouiCOM.BoModeVisualBehavior.mvb_False)
+    '            'oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Add, SAPbouiCOM.BoModeVisualBehavior.mvb_False)
+    '            'oItem.SetAutoManagedAttribute(SAPbouiCOM.BoAutoManagedAttr.ama_Editable, SAPbouiCOM.BoAutoFormMode.afm_Ok, SAPbouiCOM.BoModeVisualBehavior.mvb_True)
+    '#End Region
+
+    '            oForm.Visible = True
+
+    '            EventHandler_Form_Load = True
+
+    '        Catch ex As Exception
+    '            oForm.Visible = True
+    '            objGlobal.Mostrar_Error(ex, EXO_UIAPI.EXO_UIAPI.EXO_TipoMensaje.Excepcion)
+    '        Finally
+    '            EXO_CleanCOM.CLiberaCOM.Form(oForm)
+    '        End Try
+    '    End Function
+
     Private Function ControldeFrecuencia(ByVal sDocEntry As String) As Boolean
 #Region "Variables"
         Dim oRs As SAPbobsCOM.Recordset = Nothing
@@ -453,10 +542,11 @@ Public Class EXO_143
         Dim sSQL As String = ""
         Dim sHomo As String = ""
         Dim sMensaje As String = ""
-        Dim sCardCode As String = "" : Dim sItemCode As String = "" : Dim sCatalogo As String = ""
+        Dim sCardCode As String = "" : Dim sItemCode As String = "" : Dim sCatalogo As String = "" : Dim sNumLin As String = ""
         Dim sRef As String = ""
         Dim sNomFich As String = "" : Dim sRutaFich As String = "" : Dim sLinea As String = ""
         Dim sACTFRECUENCIA As String = "N"
+        Dim sRutaCSV As String = ""
 #End Region
         ControldeFrecuencia = False
 
@@ -472,6 +562,7 @@ Public Class EXO_143
                 sHomo = oRs.Fields.Item("U_EXO_HOMO").Value.ToString.Trim
                 sCardCode = oRs.Fields.Item("CardCode").Value.ToString.Trim
                 sItemCode = oRs.Fields.Item("ItemCode").Value.ToString.Trim
+                sNumLin = oRs.Fields.Item("LineNum").Value.ToString.Trim
                 sCatalogo = oRs.Fields.Item("SubCatNum").Value.ToString.Trim
 
                 objGlobal.SBOApp.StatusBar.SetText("(EXO) - Homo: " & sHomo & " - IC: " & sCardCode & " - Art: " & sItemCode & " - Cat: " & sCatalogo, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
@@ -543,10 +634,28 @@ Public Class EXO_143
                                 PrintLine(1, sLinea)
                                 FileClose(1)
                                 objGlobal.SBOApp.StatusBar.SetText("(EXO) - Fichero Creado...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+
+                                'CREAR UN SEGUNDO FICHERO quitar .csv
+                                sNomFich = "INFLAB_" & sNumLin.PadLeft(4, CChar("0")) & sDocEntry.PadLeft(7, CChar("0"))
+                                sRutaFich = Path.Combine(sPath & sNomFich & ".csv")
+                                If IO.File.Exists(sRutaFich) = False Then
+                                    IO.File.Delete(sRutaFich)
+                                End If
+                                FileOpen(1, sRutaFich, OpenMode.Output)
+                                sMensaje = "Generando fichero - " & sRutaFich
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - " & sMensaje, SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Warning)
+                                sLinea = sCardCode & ";" & sItemCode
+                                PrintLine(1, sLinea)
+                                FileClose(1)
+                                objGlobal.SBOApp.StatusBar.SetText("(EXO) - Fichero Creado...", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success)
+
 #End Region
                                 'Actualizamos las líneas de las recepciones
+                                'guardo en un nuevo campo EXO_RUTACSV la ruta del fichero excel
+                                sRutaCSV = sRutaFich.Remove(sRutaFich.Length - 4, 4) & ".xlsx"
 #Region "Actualizamos línea de la recepción actual "
-                                sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y' "
+                                sSQL = "UPDATE ""PDN1"" SET ""U_EXO_CRTLF""='Y', "
+                                sSQL &= " ""U_EXO_RUTACSV"" ='" & sRutaCSV & "'"
                                 sSQL &= " WHERE ""DocEntry""=" & sDocEntry
                                 sSQL &= "  and ""LineNum""=" & oRs.Fields.Item("LineNum").Value.ToString.Trim
                                 If objGlobal.refDi.SQL.executeNonQuery(sSQL) = True Then
