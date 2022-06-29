@@ -7,7 +7,6 @@
         <Menu Checked="0" Enabled="1" FatherUID="EXO-MnPFMES" Image="" String="Recalcular Precios" Type="1" UniqueID="EXO-MnRPRE"></Menu>
       <Menu Checked="0" Enabled="1" FatherUID="2304" Image="" String="" Type="3" UniqueID="EXO-MnCSEP1"></Menu>
       <Menu Checked="0" Enabled="1" FatherUID="2304" Image="" String="Sólo Ticket" Type="1" UniqueID="EXO-MnSTKT"></Menu>
-      <Menu Checked="0" Enabled="1" FatherUID="2304" Image="" String="Control de Frecuencia" Type="1" UniqueID="EXO-MnCRTF"></Menu>
     </action>
   </Menus>
 </Application>
