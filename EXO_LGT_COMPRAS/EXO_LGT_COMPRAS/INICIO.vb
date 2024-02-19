@@ -294,7 +294,7 @@ Public Class INICIO
             objGlobal.Mostrar_Error(ex, EXO_TipoMensaje.Excepcion)
             Return False
         Finally
-            Clase = Nothing
+            ' Clase = Nothing
         End Try
     End Function
     Public Overrides Function SBOApp_RightClickEvent(infoEvento As ContextMenuInfo) As Boolean
